@@ -26,6 +26,64 @@ Piensalas como:
 - playbooks operativos versionables en Git;
 - bloques reutilizables para estandarizar como trabaja el equipo.
 
+> Para ver un ejemplo real, explorar la skill [`living-docs`](./skills/living-docs/SKILL.md) incluida en este repositorio.
+
+### Anatomia de una skill
+
+Una skill es un **directorio** que contiene un archivo `SKILL.md` obligatorio y, opcionalmente, N archivos y sub-directorios adicionales:
+
+```text
+mi-skill/
+├── SKILL.md              # (requerido) Index de la skill: frontmatter YAML + instrucciones
+├── scripts/              # (opcional) Codigo ejecutable (.py, .sh, .js, etc.)
+│   ├── init_skill.py
+│   ├── package_skill.py
+│   └── quick_validate.py
+├── references/           # (opcional) Documentacion de apoyo (.md, .txt)
+│   ├── output-patterns.md
+│   └── workflows.md
+└── assets/               # (opcional) Datos y templates (.json, .md, .yaml, etc.)
+    └── examples.json
+```
+
+> El ejemplo de arriba corresponde a la estructura real de la skill [`skill-creator`](./skills/skill-creator/).
+
+**`SKILL.md` es el index** — es el unico archivo que el agente lee siempre al cargar la skill. Contiene el frontmatter YAML (metadatos) y las instrucciones operativas principales. Desde ahi, el agente puede decidir cargar archivos adicionales de `references/`, ejecutar scripts de `scripts/`, o usar datos de `assets/` segun lo necesite.
+
+Para que el agente sepa que esos recursos existen, **`SKILL.md` debe referenciarlos usando paths relativos**. El agente solo conoce lo que `SKILL.md` le dice — si un script o referencia no esta mencionado en el body, el agente no sabra que existe. Ejemplo real del `SKILL.md` de [`skill-creator`](./skills/skill-creator/SKILL.md):
+
+```markdown
+## Skill Creation Process
+
+Skill creation involves these steps:
+
+1. Understand the skill with concrete examples
+2. Plan reusable skill contents (scripts, references, assets)
+3. Initialize the skill (run init_skill.py)
+4. Edit the skill (implement resources and write SKILL.md)
+5. Package the skill (run package_skill.py)
+6. Iterate based on real usage
+
+Follow these steps in order, skipping only if there is a clear
+reason why they are not applicable.
+```
+
+Notar como los pasos 3 y 5 referencian scripts por nombre (`init_skill.py`, `package_skill.py`). Mas adelante en el mismo `SKILL.md`, cada paso detalla el path relativo completo:
+
+```markdown
+### Step 3: Initializing the Skill
+When creating a new skill from scratch, always run the `init_skill.py` script.
+Usage:
+    scripts/init_skill.py <skill-name> --path <output-directory>
+
+### Step 5: Packaging a Skill
+    scripts/package_skill.py <path/to/skill-folder>
+```
+
+Este patron — referenciar recursos con paths relativos desde `SKILL.md` — es lo que permite al agente navegar la skill como un arbol: lee el index, identifica que recursos necesita, y los carga bajo demanda.
+
+Los archivos dentro de una skill pueden ser de **cualquier tipo**: `.md`, `.txt`, `.py`, `.sh`, `.json`, `.yaml`, `.js`, `.ts`, entre otros. No hay restriccion de formato porque **los agentes de IA viven en una terminal** — tienen acceso al shell del sistema operativo y pueden leer archivos, ejecutar scripts y correr comandos exactamente igual que un developer humano. Si un script `.sh` o `.py` esta en la skill, el agente puede ejecutarlo directamente.
+
 ## 2) Como funcionan
 
 Una skill se define como un directorio con un archivo `SKILL.md` que incluye frontmatter YAML.
@@ -46,15 +104,65 @@ Instrucciones operativas para el agente.
 Campos clave del frontmatter:
 
 - `name` (requerido): identificador unico (minusculas, guiones).
-- `description` (requerido): para que sirve y en que contexto se activa. Es el mecanismo principal de trigger — el agente decide si cargar la skill en base a este campo.
+- `description` (requerido): para que sirve y en que contexto se activa.
 - `metadata.internal` (opcional): oculta la skill del descubrimiento normal.
 
-Flujo operativo simplificado:
+### El campo `description`: el mecanismo de auto-invocacion
+
+El campo `description` del frontmatter es **el campo mas importante de una skill** despues de las instrucciones mismas. Es el mecanismo principal por el cual los agentes deciden automaticamente si cargar una skill o no.
+
+Cuando un agente recibe una tarea del usuario, compara el contexto de la conversacion contra las `description` de todas las skills disponibles. Si hay match semantico, el agente **carga la skill automaticamente** sin que el usuario lo pida. Por esto, la description debe ser rica en contexto: incluir que resuelve, cuando usarla, y palabras clave o frases que un usuario diria naturalmente.
+
+Ejemplo de una description efectiva (de la skill [`skill-creator`](./skills/skill-creator/SKILL.md)):
+
+```yaml
+description: "Generate living documentation from git diffs — analyze branch
+  comparisons or last N commits to automatically create or update Component Docs,
+  Changelogs, ADRs, and Runbooks. Use when asked to: (1) document changes from
+  a branch diff, (2) generate release notes, (3) update service documentation.
+  Triggers: 'document the diff', 'generate docs from commits', 'release notes',
+  'living docs', 'analiza el diff y genera documentacion'."
+```
+
+Notar como incluye:
+- **Que hace** ("Generate living documentation from git diffs")
+- **Cuando usarla** (lista numerada de escenarios)
+- **Triggers textuales** (frases exactas que un usuario diria, incluso en otro idioma)
+
+Una description pobre como `"Genera documentacion"` haria que el agente no la cargue cuando el usuario dice "necesito release notes del ultimo sprint" — porque no hay overlap semantico suficiente.
+
+### Metodos de invocacion
+
+Las skills se pueden invocar de tres formas:
+
+#### 1. Auto-invocacion (recomendado)
+
+El agente decide cargar la skill automaticamente basandose en el match entre la `description` y el contexto de la conversacion. Es el metodo mas natural — el usuario no necesita saber que la skill existe.
+
+```
+Usuario: "genera el changelog del ultimo sprint"
+Agente:  (detecta match con la skill living-docs, la carga, y ejecuta el flujo)
+```
+
+#### 2. Invocacion manual por referencia
+
+El usuario pide explicitamente al agente que use una skill por nombre o concepto. Util cuando el usuario sabe que la skill existe y quiere forzar su uso.
+
+```
+Usuario: "usa la skill living-docs para documentar los cambios de esta rama"
+```
+
+#### 3. Invocacion por herramienta (tool use)
+
+Algunos agentes exponen las skills como herramientas invocables (tools). En ese caso, el agente puede llamar a la skill como si fuera una funcion. Esto depende de la implementacion del agente — por ejemplo, Claude Code expone un tool `mcp_skill` que permite cargar skills explicitamente.
+
+### Flujo operativo simplificado
 
 1. Instalamos skills en rutas compatibles con cada agente.
-2. El agente descubre skills por ruta/indice.
-3. El agente decide usarla (o se le fuerza por prompt/herramienta).
-4. Carga instrucciones de `SKILL.md` y ejecuta el flujo.
+2. El agente descubre skills disponibles por ruta/indice.
+3. El agente decide usarla (auto-invocacion por `description`) o se le pide (invocacion manual/tool).
+4. Carga las instrucciones de `SKILL.md` como contexto operativo.
+5. Ejecuta el flujo definido, cargando `references/` y ejecutando `scripts/` segun lo necesite.
 
 ## 3) Estructura de este repositorio
 
@@ -156,15 +264,7 @@ Si `skill-creator` no esta disponible en el agente, instalarla:
 npx skills add https://github.com/anthropics/skills --skill skill-creator
 ```
 
-### Estructura de una skill
-
-```text
-mi-skill/
-├── SKILL.md              # (requerido) Frontmatter YAML + instrucciones
-├── scripts/              # (opcional) Codigo ejecutable (Python, Bash, etc.)
-├── references/           # (opcional) Documentacion para cargar en contexto bajo demanda
-└── assets/               # (opcional) Archivos para usar en la salida (templates, imagenes, etc.)
-```
+> La estructura de archivos de una skill se detalla en la seccion [1) Que son las Skills — Anatomia de una skill](#anatomia-de-una-skill).
 
 ### Paso a paso
 
