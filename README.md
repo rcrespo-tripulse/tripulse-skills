@@ -1,22 +1,39 @@
-# Guia tecnica: Skills para agentes de IA
+# tripulse-skills
+
+Repositorio central de **skills para agentes de IA** de Tripulse. Aqui mantenemos skills utiles y personalizadas para todos los equipos de desarrollo. Cualquier agente de IA (Claude Code, Cursor, Codex, Copilot, Cline, etc.) que trabaje en un repositorio de Tripulse puede consumir estas skills para operar con las convenciones, flujos y herramientas del equipo.
+
+Este README sirve tambien como guia tecnica general sobre skills: que son, como funcionan, como crearlas e instalarlas. Las primeras secciones priorizan la instalacion rapida de las skills disponibles en este repositorio.
 
 ## Indice
 
-- [1) Que son las Skills](#1-que-son-las-skills)
-- [2) Como funcionan](#2-como-funcionan)
-- [3) Estructura de este repositorio](#3-estructura-de-este-repositorio)
+- [1) Skills disponibles e instalacion rapida](#1-skills-disponibles-e-instalacion-rapida)
+- [2) Que son las Skills](#2-que-son-las-skills)
+- [3) Como funcionan](#3-como-funcionan)
 - [4) Compatibilidad multi-agente](#4-compatibilidad-multi-agente)
 - [5) Casos de uso mas comunes](#5-casos-de-uso-mas-comunes)
 - [6) Por que utilizar `skills.sh`](#6-por-que-utilizar-skillssh)
 - [7) Como crear una skill propia (con skill-creator)](#7-como-crear-una-skill-propia-con-skill-creator)
 - [8) Como instalar una skill](#8-como-instalar-una-skill)
-- [9) Como los agentes descubren y utilizan skills](#9-como-los-agentes-descubren-y-utilizan-skills)
-- [10) Seguridad y gobernanza](#10-seguridad-y-gobernanza)
-- [11) Convencion interna sugerida](#11-convencion-interna-sugerida)
-- [12) Playbook corto de adopcion](#12-playbook-corto-de-adopcion)
+- [9) Seguridad y gobernanza](#9-seguridad-y-gobernanza)
 - [Referencias](#referencias)
 
-## 1) Que son las Skills
+## 1) Skills disponibles e instalacion rapida
+
+Repositorio fuente:
+
+```bash
+npx skills add https://github.com/rcrespo-tripulse/tripulse-skills
+```
+
+Instalacion por skill especifica:
+
+| Skill | Ubicacion | Descripcion | Comando de instalacion |
+| ----- | --------- | ----------- | ---------------------- |
+| [`living-docs`](./skills/living-docs/SKILL.md) | `skills/living-docs/` | Genera documentacion viva (changelogs, ADRs, runbooks) a partir de diffs de git | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill living-docs` |
+| [`skill-creator`](./skills/skill-creator/SKILL.md) | `skills/skill-creator/` | Meta-skill que guia la creacion de nuevas skills | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill skill-creator` |
+| [`prompt-engineering-patterns`](./.agents/skills/prompt-engineering-patterns/SKILL.md) | `.agents/skills/prompt-engineering-patterns/` | Patrones avanzados de prompt engineering para produccion | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill prompt-engineering-patterns` |
+
+## 2) Que son las Skills
 
 Las **skills** son capacidades reutilizables para agentes de IA. En la practica, son paquetes de conocimiento procedimental (instrucciones, flujos y convenciones) que un agente puede cargar para ejecutar tareas especializadas con mas consistencia.
 
@@ -84,7 +101,7 @@ Este patron — referenciar recursos con paths relativos desde `SKILL.md` — es
 
 Los archivos dentro de una skill pueden ser de **cualquier tipo**: `.md`, `.txt`, `.py`, `.sh`, `.json`, `.yaml`, `.js`, `.ts`, entre otros. No hay restriccion de formato porque **los agentes de IA viven en una terminal** — tienen acceso al shell del sistema operativo y pueden leer archivos, ejecutar scripts y correr comandos exactamente igual que un developer humano. Si un script `.sh` o `.py` esta en la skill, el agente puede ejecutarlo directamente.
 
-## 2) Como funcionan
+## 3) Como funcionan
 
 Una skill se define como un directorio con un archivo `SKILL.md` que incluye frontmatter YAML.
 
@@ -159,29 +176,16 @@ Algunos agentes exponen las skills como herramientas invocables (tools). En ese 
 ### Flujo operativo simplificado
 
 1. Instalamos skills en rutas compatibles con cada agente.
-2. El agente descubre skills disponibles por ruta/indice.
+2. El agente descubre skills disponibles escaneando rutas estandar dentro del repositorio:
+   - Raiz del repo (si contiene `SKILL.md`)
+   - `skills/`
+   - `.agents/skills/`, `.agent/skills/`
+   - Rutas especificas de cada agente (`.claude/skills/`, `.cline/skills/`, etc.)
 3. El agente decide usarla (auto-invocacion por `description`) o se le pide (invocacion manual/tool).
 4. Carga las instrucciones de `SKILL.md` como contexto operativo.
 5. Ejecuta el flujo definido, cargando `references/` y ejecutando `scripts/` segun lo necesite.
 
-## 3) Estructura de este repositorio
-
-Este repositorio contiene tres directorios relacionados con skills. La CLI `skills.sh` usa **symlinks** para mantener una unica copia canonica de cada skill y enlazarla a las rutas que necesita cada agente.
-
-```text
-tripulse-skills/
-├── .agents/skills/          # Copia canonica de skills instaladas
-│   ├── prompt-engineering-patterns/
-│   └── skill-creator/
-├── .agent/skills/           # Symlinks → .agents/skills/*
-│   ├── prompt-engineering-patterns -> ../../.agents/skills/prompt-engineering-patterns
-│   └── skill-creator -> ../../.agents/skills/skill-creator
-├── skills/                  # Skills propias o adicionales del repo
-│   ├── living-docs/
-│   └── skill-creator/
-├── skills-lock.json         # Lock file con hashes de skills instaladas
-└── README.md
-```
+## 4) Compatibilidad multi-agente
 
 ### Por que existen `.agents/` y `.agent/`
 
@@ -195,14 +199,6 @@ Diferentes agentes buscan skills en diferentes rutas de proyecto. Por ejemplo:
 | `.cline/skills/`  | Cline                                                                 |
 
 La CLI `npx skills add` almacena una **unica copia** en `.agents/skills/` (u otra ruta canonica) y crea **symlinks** en las demas rutas que necesitan otros agentes. Asi se evita duplicar archivos y se mantiene una sola fuente de verdad.
-
-> La tabla completa de agentes y rutas esta en la [documentacion oficial de skills.sh](https://github.com/vercel-labs/skills#supported-agents).
-
-### El directorio `skills/`
-
-El directorio `skills/` en la raiz es UNA de las rutas estandar donde la CLI busca skills dentro de un repositorio. Aqui se pueden colocar skills propias del proyecto que se quieran compartir o distribuir.
-
-## 4) Compatibilidad multi-agente
 
 `skills.sh` soporta mas de **40 agentes** de IA. Algunos de los mas relevantes:
 
@@ -219,7 +215,7 @@ El directorio `skills/` en la raiz es UNA de las rutas estandar donde la CLI bus
 | Windsurf       | `windsurf`       | `.windsurf/skills/` | `~/.codeium/windsurf/skills/` |
 | Amp            | `amp`            | `.agents/skills/`   | `~/.config/agents/skills/`    |
 
-La lista completa (40+) esta disponible en: https://github.com/vercel-labs/skills#supported-agents
+> La tabla completa de agentes y rutas esta en la [documentacion oficial de skills.sh](https://github.com/vercel-labs/skills#supported-agents).
 
 Al instalar, se puede apuntar a agentes especificos:
 
@@ -250,7 +246,6 @@ Ventajas practicas:
 - **Compatibilidad multi-agente** (40+ agentes) en un solo flujo.
 - **Symlinks por defecto**: una sola copia canonica, multiples agentes enlazados.
 - **Versionado y distribucion por Git** (facil de auditar).
-- **Senales de adopcion** mediante leaderboard basado en telemetria anonima.
 
 ## 7) Como crear una skill propia (con skill-creator)
 
@@ -264,7 +259,7 @@ Si `skill-creator` no esta disponible en el agente, instalarla:
 npx skills add https://github.com/anthropics/skills --skill skill-creator
 ```
 
-> La estructura de archivos de una skill se detalla en la seccion [1) Que son las Skills — Anatomia de una skill](#anatomia-de-una-skill).
+> La estructura de archivos de una skill se detalla en la seccion [2) Que son las Skills — Anatomia de una skill](#anatomia-de-una-skill).
 
 ### Paso a paso
 
@@ -391,29 +386,7 @@ npx skills remove [skills]   # Eliminar skills instaladas
 npx skills init [name]       # Crear template de SKILL.md
 ```
 
-## 9) Como los agentes descubren y utilizan skills
-
-### Descubrimiento
-
-La CLI busca skills en rutas estandar dentro del repositorio:
-
-- Raiz del repo (si contiene `SKILL.md`)
-- `skills/`
-- `.agents/skills/`, `.agent/skills/`
-- Rutas especificas de cada agente (`.claude/skills/`, `.cline/skills/`, etc.)
-
-Si no encuentra rutas estandar, hace busqueda recursiva.
-
-### Uso en runtime
-
-Un agente puede:
-
-- Seleccionar skills por `description` y contexto de la tarea actual.
-- Cargar instrucciones de `SKILL.md` como contexto operativo.
-- Ejecutar pasos/herramientas segun la skill define.
-- Cargar `references/` bajo demanda para no saturar el contexto.
-
-## 10) Seguridad y gobernanza
+## 9) Seguridad y gobernanza
 
 - Revisar `SKILL.md` antes de instalar skills de terceros.
 - Preferir repositorios confiables/verificados.
@@ -426,25 +399,6 @@ Un agente puede:
 | ----------------- | --------- | --------------------- | ---------------------------------------------- |
 | **Project** | (default) | `./<agent>/skills/` | Compartir con el equipo via repo               |
 | **Global**  | `-g`    | `~/<agent>/skills/` | Preferencias personales en multiples proyectos |
-
-### Telemetria
-
-- La CLI reporta telemetria anonima de instalacion para ranking.
-- Se puede desactivar con `DISABLE_TELEMETRY=1` o `DO_NOT_TRACK=1`.
-
-## 11) Convencion interna sugerida
-
-- Crear repositorio `company-agent-skills`.
-- Tener carpetas por dominio (`backend/`, `frontend/`, `ops/`).
-- Definir plantilla comun de `SKILL.md` y checklist de calidad.
-
-## 12) Playbook corto de adopcion
-
-1. Pilotear 2-3 skills en un squad (1-2 semanas).
-2. Medir impacto: tiempo de entrega, retrabajo, calidad.
-3. Publicar v1 de skills internas en repo central.
-4. Instalar por proyecto en repos clave.
-5. Establecer ciclo de mantenimiento mensual (`skills check/update`).
 
 ## Referencias
 
