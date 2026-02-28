@@ -7,8 +7,8 @@ All documents use YAML frontmatter with the standard metadata header. Use wiki-l
 ```yaml
 ---
 aliases: [Keyword 1, Keyword 2, Spanish Name]
-type: service | library | frontend | infrastructure | database | cli-tool | sop | changelog
-layer: Backend | Frontend | Infrastructure | Data | Shared | SOP
+type: service | library | frontend | infrastructure | database | cli-tool | sop | changelog | guide | technical | bug | plan | task
+layer: Backend | Frontend | Infrastructure | Data | Shared | SOP | Store (Magento) | ERP (SAP) | Frontend (React)
 status: active | debt | zombie | gap
 owner: "[[Person Name]]"
 tech_stack: "[[Technology 1]], [[Technology 2]]"
@@ -361,4 +361,368 @@ If something goes wrong:
 
 - [[Service Doc]]
 - [[ADR-NNN]]
+```
+
+---
+
+## Template 5: Technical Guide
+
+Use when: Deep technical documentation needed - architecture patterns, design decisions, complex integrations, system overview.
+
+```markdown
+---
+aliases: [Technical Guide, Guía Técnica, Technical Documentation]
+type: technical
+layer: Backend | Frontend | Infrastructure | SOP
+status: active | debt | gap
+owner: "[[Owner Name]]"
+tech_stack: "[[Technology 1]], [[Technology 2]]"
+last_updated: YYYY-MM-DD
+source_branch: branch-name
+commit_range: abc..def
+---
+
+# Technical Guide: [Title]
+
+> One-line description of what this guide covers.
+
+## Overview
+
+[2-3 paragraphs explaining the technical concept, pattern, or architecture this guide documents.]
+
+## Prerequisites
+
+- [Prerequisite 1]
+- [Prerequisite 2]
+
+## Architecture
+
+### High-Level Diagram
+
+[Describe the components and their relationships]
+
+### Components
+
+| Component | Responsibility | Key Files |
+|-----------|---------------|-----------|
+| [[Component A]] | Does X | `src/a.ts` |
+| [[Component B]] | Does Y | `src/b.ts` |
+
+## Implementation Details
+
+### [Section 1]
+
+[Code examples, configuration, or detailed explanation]
+
+### [Section 2]
+
+[More implementation details]
+
+## Usage Examples
+
+### Example 1: [Use Case]
+
+```bash
+# Command or code example
+```
+
+### Example 2: [Another Use Case]
+
+```bash
+# Command or code example
+```
+
+## Related
+
+- [[Component Doc]]
+- [[ADR-NNN]]
+- [[Runbook: Operation]]
+```
+
+---
+
+## Template 6: User Guide
+
+Use when: Documentation for developers/users on how to use a feature, integrate with a service, or accomplish a task.
+
+```markdown
+---
+aliases: [User Guide, Guía de Usuario, How-To, Tutorial]
+type: guide
+layer: Backend | Frontend | SOP
+status: active
+owner: "[[Owner Name]]"
+tech_stack: "[[Technology]]"
+last_updated: YYYY-MM-DD
+source_branch: branch-name
+commit_range: abc..def
+---
+
+# Guide: [Feature/Integration Name]
+
+> Brief description of what the user will learn or accomplish.
+
+## What You'll Learn
+
+- [Learning outcome 1]
+- [Learning outcome 2]
+
+## Getting Started
+
+### Prerequisites
+
+- [Requirement 1]
+- [Requirement 2]
+
+### Setup
+
+[Step-by-step setup instructions]
+
+## Step-by-Step
+
+### Step 1: [Action]
+
+[Instructions]
+
+```bash
+# Example command
+```
+
+### Step 2: [Action]
+
+[Instructions]
+
+### Step 3: [Action]
+
+[Instructions]
+
+## Configuration
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `OPTION_NAME` | What it does | default value |
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| [Problem 1] | [Solution 1] |
+| [Problem 2] | [Solution 2] |
+
+## Related
+
+- [[Technical Guide]]
+- [[API Documentation]]
+- [[Runbook]]
+```
+
+---
+
+## Template 7: Bug Report
+
+Use when: Documenting a significant bug that was found and fixed, or a known issue that requires context.
+
+```markdown
+---
+aliases: [Bug Report, Reporte de Bug, Issue, Incidente]
+type: bug
+layer: Backend | Frontend | Infrastructure
+status: active | resolved | wontfix
+owner: "[[Owner Name]]"
+tech_stack: "[[Technology]]"
+last_updated: YYYY-MM-DD
+source_branch: branch-name
+commit_range: abc..def
+---
+
+# Bug: [Bug Title]
+
+> One-line summary of the bug.
+
+## Summary
+
+[Brief description of what the bug was and its impact.]
+
+## Environment
+
+- **Service**: [[Service Name]]
+- **Version/Commit**: [version or commit]
+- **Environment**: production | staging | development
+- **Frequency**: Always | Intermittent | One-time
+
+## Symptoms
+
+- [Symptom 1]
+- [Symptom 2]
+
+## Root Cause
+
+[Explanation of what caused the bug - include relevant code snippets if helpful]
+
+```
+[Code snippet showing the bug]
+```
+
+## Resolution
+
+[How the bug was fixed]
+
+```diff
+- // buggy code
++ // fixed code
+```
+
+## Impact
+
+- **Severity**: Critical | High | Medium | Low
+- **Affected Users**: [percentage or count]
+- **Data Impact**: [if applicable]
+
+## Prevention
+
+- [How to prevent this bug in the future]
+- [Tests added]
+
+## Related
+
+- [[Commit: fix-hash]]
+- [[Related ADR]]
+```
+
+---
+
+## Template 8: Plan
+
+Use when: Documenting migration plans, roadmaps, or large-scale technical initiatives.
+
+```markdown
+---
+aliases: [Plan, Roadmap, Migration Plan, Plan de Migración]
+type: plan
+layer: Backend | Frontend | Infrastructure | SOP
+status: proposed | in_progress | completed | cancelled
+owner: "[[Owner Name]]"
+tech_stack: "[[Technology 1]], [[Technology 2]]"
+last_updated: YYYY-MM-DD
+source_branch: branch-name
+commit_range: abc..def
+---
+
+# Plan: [Initiative Name]
+
+> One-line description of the plan objective.
+
+## Overview
+
+[High-level description of what this plan aims to accomplish and why.]
+
+## Goals
+
+- [Primary goal 1]
+- [Primary goal 2]
+
+## Scope
+
+### In Scope
+
+- [Item 1]
+- [Item 2]
+
+### Out of Scope
+
+- [Item 1]
+- [Item 2]
+
+## Timeline
+
+| Phase | Description | Start | End | Owner |
+|-------|-------------|-------|-----|-------|
+| Phase 1 | [Description] | YYYY-MM-DD | YYYY-MM-DD | [[Owner]] |
+| Phase 2 | [Description] | YYYY-MM-DD | YYYY-MM-DD | [[Owner]] |
+| Phase 3 | [Description] | YYYY-MM-DD | YYYY-MM-DD | [[Owner]] |
+
+## Resources
+
+- **Budget**: [if applicable]
+- **Team**: [[Team Member 1]], [[Team Member 2]]
+- **Dependencies**: [[Dependency 1]], [[Dependency 2]]
+
+## Risks
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| [Risk 1] | High/Medium/Low | [Mitigation strategy] |
+| [Risk 2] | High/Medium/Low | [Mitigation strategy] |
+
+## Success Criteria
+
+- [Criteria 1]
+- [Criteria 2]
+
+## Related
+
+- [[ADR-NNN]]
+- [[Technical Guide]]
+- [[Previous Plan]]
+```
+
+---
+
+## Template 9: Task Doc
+
+Use when: Documenting a specific task, especially one-time tasks or small but significant changes.
+
+```markdown
+---
+aliases: [Task, Tarea, Ticket]
+type: task
+layer: Backend | Frontend | Infrastructure
+status: pending | in_progress | completed
+owner: "[[Owner Name]]"
+tech_stack: "[[Technology]]"
+last_updated: YYYY-MM-DD
+source_branch: branch-name
+commit_range: abc..def
+---
+
+# Task: [Task Name]
+
+> One-line description of the task.
+
+## Description
+
+[What needs to be done and why.]
+
+## Context
+
+[Background information - why this task exists, related issues, dependencies]
+
+## Requirements
+
+- [Requirement 1]
+- [Requirement 2]
+
+## Implementation Notes
+
+[Technical details about how to implement this task]
+
+## Commands
+
+```bash
+# Command to run
+```
+
+## Verification
+
+- [ ] [Verification step 1]
+- [ ] [Verification step 2]
+
+## Notes
+
+[Any additional notes or observations]
+
+## Related
+
+- [[Task: Related Task]]
+- [[Commit: relevant-commit]]
 ```

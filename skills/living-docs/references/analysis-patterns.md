@@ -164,15 +164,17 @@ Extract intent from commit messages when the diff is ambiguous:
 
 | Commit Prefix | Likely Doc Type |
 |---------------|-----------------|
-| `feat:` | Component Doc + Changelog (New Features) |
-| `fix:` | Changelog (Bug Fixes) |
-| `refactor:` | Changelog (Internal) + possibly ADR |
+| `feat:` | Component Doc + Changelog (New Features) + Task Doc |
+| `fix:` | Changelog (Bug Fixes) + Bug Report |
+| `refactor:` | Changelog (Internal) + possibly ADR + Technical Guide |
 | `chore:` | Usually skip, unless dependency/infra change |
 | `breaking:` / `BREAKING CHANGE` | Changelog (Breaking) + ADR + Component Doc update |
 | `perf:` | Changelog (Improvements) |
 | `docs:` | Skip (already documentation) |
 | `ci:` | Runbook if deployment changed, otherwise skip |
 | `build:` | Runbook if affects deployment, otherwise skip |
+| `migration:` | Plan + ADR |
+| `hotfix:` | Bug Report + Changelog (Critical Fix) |
 
 ## Scope Determination
 
@@ -183,3 +185,81 @@ When analyzing a diff, determine documentation scope:
 - **Shared package / contract changed** → Update the package doc + flag all consumers
 - **Infrastructure change** → Runbook + possibly ADR
 - **Global pattern change** → ADR + update all affected Component Docs
+
+---
+
+## New Document Type Detection
+
+### Technical Guide Detection
+
+```
+Signals (any of):
+- New architectural pattern (CQRS, event sourcing, saga, etc.)
+- Complex multi-service integration
+- Deep refactor affecting multiple components
+- New design pattern implementation
+- Complex business logic documented
+→ Action: Generate Technical Guide
+```
+
+### User Guide Detection
+
+```
+Signals (any of):
+- New feature with user-facing API
+- Integration with external service
+- New workflow or process
+- Developer experience improvements
+→ Action: Generate User Guide
+```
+
+### Bug Report Detection
+
+```
+Signals (any of):
+- Fix for production issue
+- Security vulnerability fix
+- Complex bug with multiple root causes
+- Bug that required significant investigation
+- Hotfix commits
+→ Action: Generate Bug Report
+```
+
+### Plan Detection
+
+```
+Signals (any of):
+- Migration scripts/commits
+- Multi-phase refactoring effort
+- Feature flag rollout
+- Deprecation roadmap
+- Large-scale architectural changes
+→ Action: Generate Plan
+```
+
+### Task Doc Detection
+
+```
+Signals (any of):
+- Single focused change
+- One-time task or experiment
+- Small but significant change
+- Dependency updates
+- Configuration changes
+→ Action: Generate Task Doc
+```
+
+---
+
+## Document Type Selection Matrix
+
+| Change Type | Primary Doc Type | Secondary Doc Types |
+|-------------|------------------|---------------------|
+| New service | Component Doc | Technical Guide, User Guide |
+| API change | Component Doc | Changelog |
+| Bug fix | Bug Report | Changelog |
+| New feature | Component Doc + User Guide | Changelog |
+| Migration | Plan + ADR | Technical Guide |
+| Infrastructure | Runbook | Technical Guide |
+| Documentation update | User Guide | - |
+| Small task | Task Doc | - |

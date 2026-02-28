@@ -1,6 +1,6 @@
 ---
 name: living-docs
-description: "Generate living documentation from git diffs — analyze branch comparisons or last N commits to automatically create or update Component Docs, Changelogs, ADRs, and Runbooks in Markdown with Obsidian-compatible YAML frontmatter. Use when asked to: (1) document changes from a branch diff, (2) generate release notes, (3) update service documentation, (4) analyze commits and produce docs, (5) create ADRs from architectural changes. Triggers: 'document the diff', 'generate docs from commits', 'update docs for [service]', 'release notes', 'what changed and document it', 'living docs', 'analiza el diff y genera documentacion'."
+description: "Generate living documentation from git diffs — analyze branch comparisons or last N commits to automatically create or update Component Docs, Changelogs, ADRs, Runbooks, Guides, Technical Docs, Bug Reports, Plans, and Task Docs in Markdown with Obsidian-compatible YAML frontmatter. Use when asked to: (1) document changes from a branch diff, (2) generate release notes, (3) update service documentation, (4) analyze commits and produce docs, (5) create ADRs from architectural changes, (6) create guides or technical docs. Triggers: 'document the diff', 'generate docs from commits', 'update docs for [service]', 'release notes', 'what changed and document it', 'living docs', 'analiza el diff y genera documentacion', 'create guide', 'create technical doc'."
 ---
 
 # Living Docs
@@ -11,57 +11,97 @@ Generate documentation driven by actual code changes. Every document traces to s
 
 ## Folder Structure
 
-All generated docs live under `${GIT_REPO_ROOT}/docs/` (relative to the repository root). Create this structure if it doesn't exist:
+This skill supports a two-phase documentation workflow for microservice architectures:
+
+### Phase 1: Local Development (per microservice)
+
+Generate docs in the `docs/` folder of each microservice during feature development. Keep the folder structure but use the naming convention:
 
 ```
-docs/
-├── components/          # Component Docs (services, apps, libraries)
-│   ├── auth-service.md
-│   ├── user-service.md
-│   └── shared-utils.md
-├── changelogs/          # Changelogs and release notes
-│   ├── changelog-auth-service-2026-02-13.md
-│   └── changelog-global-2026-02-13.md
-├── adrs/                # Architecture Decision Records
-│   ├── adr-001-redis-caching.md
-│   └── adr-002-event-driven-auth.md
-├── runbooks/            # Runbooks and SOPs
-│   ├── runbook-deploy-auth-service.md
-│   └── runbook-database-migration.md
-└── index.md             # Auto-generated index linking all docs
+<repo-root>/
+├── react/
+│   └── docs/
+│       ├── components/          # Component Docs
+│       │   ├── react_comp_auth.md
+│       │   └── react_comp_user_service.md
+│       ├── changelogs/         # Changelogs and release notes
+│       │   └── react_cl_2026-02-28.md
+│       ├── adrs/               # Architecture Decision Records
+│       │   └── react_adr_001_oauth.md
+│       ├── runbooks/           # Runbooks and SOPs
+│       │   └── react_rb_deploy.md
+│       ├── guides/             # User Guides (NEW)
+│       │   └── react_guide_oauth_setup.md
+│       ├── technical/          # Technical Guides (NEW)
+│       │   └── react_tech_state_mgmt.md
+│       ├── bugs/               # Bug Reports (NEW)
+│       │   └── react_bug_auth_timeout.md
+│       ├── plans/              # Plans (NEW)
+│       │   └── react_plan_q2_migration.md
+│       ├── tasks/              # Task Docs (NEW)
+│       │   └── react_task_deps_update.md
+│       └── index.md            # Auto-generated index linking all docs
+├── integrator/
+│   └── docs/
+│       └── ...
+└── ...
+```
+
+### Phase 2: Centralized (docs-microservices)
+
+After PR approval, merge docs to `docs-microservices/`:
+
+```
+docs-microservices/
+├── reference/     # Component Docs, Guides, Technical Docs (from components/, guides/, technical/)
+│   ├── react/
+│   ├── integrator/
+│   └── ...
+├── engineering/   # ADRs, Runbooks (from adrs/, runbooks/)
+│   ├── adrs/
+│   └── runbooks/
+├── reports/       # Changelogs, Bug Reports (from changelogs/, bugs/)
+│   └── changelogs/
+└── strategy/     # Plans (from plans/)
+    └── ...
 ```
 
 ### File Naming Conventions
 
-| Doc Type | Directory | Filename Pattern |
-|----------|-----------|-----------------|
-| Component Doc | `docs/components/` | `{component-name}.md` |
-| Changelog | `docs/changelogs/` | `changelog-{scope}-{YYYY-MM-DD}.md` |
-| ADR | `docs/adrs/` | `adr-{NNN}-{slug}.md` |
-| Runbook | `docs/runbooks/` | `runbook-{operation-slug}.md` |
-| Index | `docs/` | `index.md` |
+**Pattern**: `${REPO}_${TYPE_CODE}_${SLUG}.md`
+
+| Doc Type | Folder | Type Code | Filename Pattern | Example |
+|----------|--------|-----------|------------------|---------|
+| Component Doc | `docs/components/` | comp | `{repo}_comp_{name}.md` | `react_comp_auth.md` |
+| Changelog | `docs/changelogs/` | cl | `{repo}_cl_{YYYY-MM-DD}.md` | `react_cl_2026-02-28.md` |
+| ADR | `docs/adrs/` | adr | `{repo}_adr_{NNN}_{slug}.md` | `react_adr_001_oauth.md` |
+| Runbook | `docs/runbooks/` | rb | `{repo}_rb_{operation}.md` | `react_rb_deploy.md` |
+| Guide | `docs/guides/` | guide | `{repo}_guide_{topic}.md` | `react_guide_oauth_setup.md` |
+| Technical | `docs/technical/` | tech | `{repo}_tech_{topic}.md` | `react_tech_state_mgmt.md` |
+| Bug Report | `docs/bugs/` | bug | `{repo}_bug_{issue}.md` | `react_bug_auth_timeout.md` |
+| Plan | `docs/plans/` | plan | `{repo}_plan_{initiative}.md` | `react_plan_q2_migration.md` |
+| Task Doc | `docs/tasks/` | task | `{repo}_task_{name}.md` | `react_task_deps_update.md` |
 
 ### Index File
 
 After generating or updating docs, update `docs/index.md` with links to all docs:
 
 ```markdown
-# Documentation Index
+# Documentation Index — react
 
-> Auto-generated. Last updated: YYYY-MM-DD
+> Last updated: 2026-02-28
 
-## Components
-- [[auth-service]] — Authentication and authorization service
-- [[shared-utils]] — Shared utility library
+## Component Docs
+- [[react_comp_auth]] — Authentication service
 
-## Recent Changelogs
-- [[changelog-auth-service-2026-02-13]] — Added OAuth2 support
+## Changelogs
+- [[react_cl_2026-02-28]] — Feature release
 
-## Architecture Decisions
-- [[adr-001-redis-caching]] — Accepted
+## Guides
+- [[react_guide_oauth_setup]] — OAuth setup guide
 
-## Runbooks
-- [[runbook-deploy-auth-service]] — Deployment procedure
+## Technical
+- [[react_tech_state_mgmt]] — State management deep-dive
 ```
 
 ---
@@ -69,42 +109,60 @@ After generating or updating docs, update `docs/index.md` with links to all docs
 ## Workflow
 
 ```
-1. Gather context     → Determine diff scope
-2. Extract diff data  → Run extract-diff.sh or git commands
+1. Gather context     → Determine diff scope, identify repo
+2. Extract diff data  → Run extraction scripts
 3. Classify changes   → Identify what matters (see references/analysis-patterns.md)
-4. Select templates   → Pick doc types (see references/templates.md)
-5. Generate docs      → Write markdown with full YAML frontmatter
-6. Verify output      → Cross-check generated docs against diff
-7. Present summary    → Show what was generated and why
+4. Select templates  → Pick doc types (see references/templates.md)
+5. Generate docs     → Write markdown with naming convention
+6. Verify output     → Cross-check generated docs against diff
+7. Present summary   → Show what was generated and why
+8. Merge to central → After PR approval, merge to docs-microservices
 ```
 
 ### Step 1: Gather Context
 
 Determine from the user's message (ask only if not inferrable):
 - **Diff scope**: Branch comparison (e.g., `feature/X` vs `Develop`) or last N commits?
+- **Repository**: Which microservice is being documented?
 - **Existing docs**: Any docs to update rather than create from scratch?
 
 **Defaults (when not specified):**
 - **Diff scope**: Current branch vs default branch (auto-detected from repo)
-- **Output path**: Always `${GIT_REPO_ROOT}/docs/` (using the folder structure above)
+- **Repository**: Auto-detect using `scripts/get-repo-name.sh`
+- **Output path**: `${GIT_REPO_ROOT}/docs/` (local development phase)
 - **Existing docs**: Search `${GIT_REPO_ROOT}/docs/` for matching filenames before creating new docs
 
 ### Step 2: Extract Diff Data
 
-Run the extraction script from this skill's directory:
+Use the extraction scripts from this skill's directory:
 
 ```bash
-# Branch comparison (auto-detects default branch)
-bash <this-skill-path>/scripts/extract-diff.sh <repo-path> --branch <target>
+# Get repository name (use this first!)
+REPO_NAME=$(bash <skill-path>/scripts/get-repo-name.sh <repo-path>)
+
+# Branch comparison with repo detection (recommended)
+bash <skill-path>/scripts/extract-diff-repo.sh <repo-path> --branch <target>
 
 # Last N commits
-bash <this-skill-path>/scripts/extract-diff.sh <repo-path> --commits 20
+bash <skill-path>/scripts/extract-diff-repo.sh <repo-path> --commits 20
 
 # Filtered by path (for monorepos)
-bash <this-skill-path>/scripts/extract-diff.sh <repo-path> --branch Develop --path services/auth/
+bash <skill-path>/scripts/extract-diff-repo.sh <repo-path> --branch Develop --path services/auth/
+
+# Large diffs: start with --stat only
+bash <skill-path>/scripts/extract-diff-repo.sh <repo-path> --branch feature/X --stat
 ```
 
 For multi-repo workspaces, run per repository.
+
+#### Determine Document Category
+
+After extracting the diff, determine the target category for docs-microservices:
+
+```bash
+CATEGORY=$(bash <skill-path>/scripts/get-doc-category.sh <change-type>)
+# Options: reference, engineering, reports, strategy
+```
 
 #### Large Diff Strategy
 
@@ -193,8 +251,9 @@ Show the user what was generated:
 
 | File | Type | Reason |
 |------|------|--------|
-| docs/components/auth-service.md | Component Doc | New endpoints in routes/users.ts |
-| docs/changelogs/changelog-auth-2026-02-13.md | Changelog | 12 commits with 3 features, 2 fixes |
+| docs/components/react_comp_auth.md | Component Doc | New endpoints in routes/users.ts |
+| docs/changelogs/react_cl_2026-02-28.md | Changelog | 12 commits with 3 features, 2 fixes |
+| docs/guides/react_guide_oauth_setup.md | Guide | OAuth integration guide |
 
 ### Key Changes Documented
 - [bullets]
@@ -204,6 +263,41 @@ Show the user what was generated:
 ```
 
 Always update `${GIT_REPO_ROOT}/docs/index.md` with links to all generated docs (for multi-repo workspaces, do this per repository).
+
+### Step 8: Merge to docs-microservices (Post-PR)
+
+After PR approval, merge the documentation to the centralized `docs-microservices/` repository:
+
+1. **Copy docs** from each microservice `docs/` folder to the corresponding category in `docs-microservices/`:
+   - `docs/components/` → `docs-microservices/reference/{repo}/`
+   - `docs/changelogs/` → `docs-microservices/reports/changelogs/`
+   - `docs/adrs/` → `docs-microservices/engineering/adrs/`
+   - `docs/runbooks/` → `docs-microservices/engineering/runbooks/`
+   - `docs/guides/` → `docs-microservices/reference/{repo}/`
+   - `docs/technical/` → `docs-microservices/reference/{repo}/`
+   - `docs/bugs/` → `docs-microservices/reports/bugs/`
+   - `docs/plans/` → `docs-microservices/strategy/plans/`
+
+2. **Update central index** at `docs-microservices/index.md`
+3. **Cross-reference** — Add links between services if applicable
+
+```bash
+# Example workflow after PR approval
+# Copy all docs from react to docs-microservices
+cp -r react/docs/components/* docs-microservices/reference/react/
+cp -r react/docs/changelogs/* docs-microservices/reports/changelogs/
+cp -r react/docs/adrs/* docs-microservices/engineering/adrs/
+cp -r react/docs/runbooks/* docs-microservices/engineering/runbooks/
+cp -r react/docs/guides/* docs-microservices/reference/react/
+cp -r react/docs/technical/* docs-microservices/reference/react/
+cp -r react/docs/bugs/* docs-microservices/reports/bugs/
+cp -r react/docs/plans/* docs-microservices/strategy/plans/
+```
+
+**Merge criteria**:
+- PR must be approved and merged
+- Docs must follow naming convention
+- All frontmatter fields must be complete
 
 ---
 
@@ -223,13 +317,16 @@ Always update `${GIT_REPO_ROOT}/docs/index.md` with links to all generated docs 
 ### Input: Diff Summary
 
 ```
+=== REPO: react ===
+=== BRANCH: feature/oauth vs Develop ===
+=== COMMIT RANGE: a1b2c3d..d4e5f6g ===
+
 === FILE STATS ===
- services/auth/src/routes/auth.ts   | 45 +++++++++--
- services/auth/src/services/oauth.ts | 120 ++++++++++++++++++++++++++++
- services/auth/src/types/auth.dto.ts |  15 ++++
- packages/shared-types/src/user.ts   |   8 ++--
- services/auth/package.json          |   2 +  (added passport-google-oauth20)
- services/auth/tests/oauth.test.ts   |  85 ++++++++++++++++++++
+ src/routes/auth.ts   | 45 +++++++++--
+ src/services/oauth.ts | 120 ++++++++++++++++++++++++++++
+ src/types/auth.dto.ts |  15 ++++
+ package.json          |   2 +  (added passport-google-oauth20)
+ tests/oauth.test.ts   |  85 ++++++++++++++++++++
 
 === COMMIT LOG ===
 a1b2c3d feat: add Google OAuth2 login flow
@@ -240,23 +337,27 @@ l0m1n2o chore: add passport-google-oauth20 dependency
 
 ### Output: Classification
 
-1. **New OAuth service file** (oauth.ts, 120 lines) → High impact, new feature → Component Doc update
+1. **New OAuth service file** (oauth.ts, 120 lines) → High impact, new feature → Component Doc
 2. **Route changes** (auth.ts, 45 lines) → Public API change → Component Doc + Changelog
-3. **Shared types change** (packages/shared-types/user.ts) → Inter-component interface → Component Doc + flag consumers
-4. **New major dependency** (passport-google-oauth20) → ADR candidate
-5. **New tests with different expectations** → Confirms business logic change, not refactor
+3. **New major dependency** (passport-google-oauth20) → Technical Guide (integration)
+4. **New tests with different expectations** → Confirms business logic change
 
 ### Output: Generated Docs
 
-- `docs/components/auth-service.md` — Updated: added OAuth endpoints, new dependency, new key files
-- `docs/changelogs/changelog-auth-2026-02-13.md` — New: 2 features (OAuth login, callback handler), 1 fix
-- `docs/adrs/adr-003-google-oauth.md` — New: Decision to use passport-google-oauth20 for social login
-- `docs/components/shared-types.md` — Updated: flag that `UserDTO` interface changed (consumed by 2 services)
+Using folder structure + naming convention `${REPO}_${TYPE}_${SLUG}.md`:
+
+- `docs/components/react_comp_auth.md` — Updated: added OAuth endpoints, new key files
+- `docs/changelogs/react_cl_2026-02-28.md` — New: 2 features (OAuth login, callback handler), 1 fix
+- `docs/guides/react_guide_oauth_google.md` — New: Guide for Google OAuth integration
+- `docs/technical/react_tech_oauth_architecture.md` — New: Technical deep-dive on OAuth flow
 
 ---
 
 ## Resources
 
 - `scripts/extract-diff.sh` — Extract structured diff data (file stats, commit log, full diff)
+- `scripts/extract-diff-repo.sh` — Extract diff with automatic repository name detection
+- `scripts/get-repo-name.sh` — Get the current git repository name
+- `scripts/get-doc-category.sh` — Determine destination category (reference/engineering/reports/strategy)
 - `references/templates.md` — All doc templates with frontmatter schema
 - `references/analysis-patterns.md` — How to classify changes from diffs
