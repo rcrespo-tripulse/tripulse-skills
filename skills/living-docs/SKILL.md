@@ -1,6 +1,6 @@
 ---
 name: living-docs
-description: "Generate living documentation from git diffs — analyze branch comparisons or last N commits to automatically create or update Component Docs, Changelogs, ADRs, Runbooks, Guides, Technical Docs, Bug Reports, Plans, and Task Docs in Markdown with Obsidian-compatible YAML frontmatter. Use when asked to: (1) document changes from a branch diff, (2) generate release notes, (3) update service documentation, (4) analyze commits and produce docs, (5) create ADRs from architectural changes, (6) create guides or technical docs. Triggers: 'document the diff', 'generate docs from commits', 'update docs for [service]', 'release notes', 'what changed and document it', 'living docs', 'analiza el diff y genera documentacion', 'create guide', 'create technical doc'."
+description: "Create or update living documentation from git history (branch diff, current branch, PR, or last N commits) for microservices. Use when users ask to document a feature/funcionalidad, document current branch/branch actual, generate release notes/changelog, explain what changed, or update docs for react, integrator, magento, or all services. Produces docs in each repo's docs/ folder (components, changelogs, adrs, runbooks, guides, technical, bugs, plans, tasks) with traceability to commits/files and Obsidian-compatible frontmatter."
 ---
 
 # Living Docs
@@ -8,6 +8,24 @@ description: "Generate living documentation from git diffs — analyze branch co
 Generate documentation driven by actual code changes. Every document traces to specific commits and files. When code changes, docs change.
 
 **Language policy**: Generate all documentation in English. Include Spanish translations in the `aliases` frontmatter field.
+
+## Activation Signals
+
+Use this skill immediately when the user intent matches documentation-from-code-changes.
+
+High-confidence trigger phrases (English/Spanish):
+- "document this feature", "document X functionality", "document current branch"
+- "document the diff", "what changed", "generate release notes", "generate changelog"
+- "update docs for react/integrator/magento", "document all microservices"
+- "documenta esta funcionalidad", "documenta la branch actual", "analiza el diff y genera documentacion"
+
+Intent-to-scope defaults:
+- "document this feature/funcionalidad" -> current branch vs default branch
+- "document current branch/branch actual" -> current branch vs default branch
+- "release notes/changelog" -> last N commits (default 20 unless user specifies)
+- "what changed" -> branch diff first; fall back to last N commits if branch base is unclear
+
+Do not trigger this skill for generic writing requests not tied to git changes.
 
 ## Folder Structure
 
@@ -126,11 +144,36 @@ Determine from the user's message (ask only if not inferrable):
 - **Repository**: Which microservice is being documented?
 - **Existing docs**: Any docs to update rather than create from scratch?
 
+#### Ambiguity Protocol
+
+If scope, branch, or repository is ambiguous, ask a focused question before generating docs.
+
+- Prefer an interactive question tool when available (single-select or multi-select options)
+- Ask one targeted question at a time, with a recommended default
+- Continue with safe defaults only when ambiguity does not change the output materially
+
+Suggested question patterns:
+- Scope ambiguity: "Do you want documentation for current branch diff, a branch comparison, or last N commits?"
+- Repo ambiguity: "Which microservice should I document: react, integrator, magento, or all?"
+
 **Defaults (when not specified):**
 - **Diff scope**: Current branch vs default branch (auto-detected from repo)
 - **Repository**: Auto-detect using `scripts/get-repo-name.sh`
 - **Output path**: `${GIT_REPO_ROOT}/docs/` (local development phase)
 - **Existing docs**: Search `${GIT_REPO_ROOT}/docs/` for matching filenames before creating new docs
+
+#### Repository Detection Guard (mandatory)
+
+Run `git status` before selecting a repo path.
+
+- If `git status` succeeds: continue in current git repository
+- If `git status` returns `fatal: not a git repository (or any of the parent directories): .git`:
+  - Treat current location as microservices root
+  - Ask: "Which microservice(s) should I document: react, integrator, magento, or all?"
+  - Accept answers like `react`, `integrator`, `magento`, `todos`/`all`, or comma-separated combinations
+  - Resolve `all` to all available microservice repos requested by user context
+
+For each selected microservice, set `REPO_PATH=<workspace-root>/<microservice>` and process independently.
 
 ### Step 2: Extract Diff Data
 
@@ -154,6 +197,18 @@ bash <skill-path>/scripts/extract-diff-repo.sh <repo-path> --branch feature/X --
 ```
 
 For multi-repo workspaces, run per repository.
+
+#### Per-Microservice Execution Rules (mandatory)
+
+For every selected microservice repository:
+
+1. Validate repo: `git -C <repo-path> rev-parse --is-inside-work-tree`
+2. Write docs only inside that repo: `<repo-path>/docs/`
+3. Never create docs outside a git repo
+4. Never create shared docs in workspace root
+5. Update `<repo-path>/docs/index.md` for that repo
+
+If multiple microservices are selected, repeat the full workflow per repo and present a grouped summary by microservice.
 
 #### Determine Document Category
 

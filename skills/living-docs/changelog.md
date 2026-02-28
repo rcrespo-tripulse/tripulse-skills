@@ -4,6 +4,26 @@ All notable changes to this skill will be documented in this file.
 
 ---
 
+## [2.0.1] - 2026-02-28
+
+### Added
+- **Activation signals section** in `SKILL.md` with high-confidence EN/ES trigger phrases for documentation-from-git intents.
+- **Intent-to-scope defaults** for common requests:
+  - feature/functionality -> current branch vs default branch
+  - current branch -> current branch vs default branch
+  - release notes/changelog -> last 20 commits (default)
+  - what changed -> branch diff first, fallback to commit-window analysis
+- **Ambiguity protocol** to require targeted clarification when repo/scope/branch materially affects output.
+- **Repository detection guard** for microservice roots when `git status` returns `fatal: not a git repository...`.
+- **Per-microservice execution rules** enforcing documentation generation only inside each selected git repo's `docs/` folder.
+
+### Changed
+- Refined skill frontmatter `description` to improve automatic trigger recall for bilingual requests and microservice-specific intents (`react`, `integrator`, `magento`, `all`).
+- Clarified multi-service behavior: process each selected microservice independently and present grouped summaries.
+
+### Fixed
+- Prevented invalid output placement by explicitly forbidding doc generation outside git repositories or in shared workspace root paths.
+
 ## [2.0.0] - 2026-02-28
 
 ### Added
