@@ -375,6 +375,46 @@ npx skills add ./my-local-skills
 | **Symlink** (por defecto) | Crea symlinks desde cada agente hacia una copia canonica. Una sola fuente de verdad. |
 | **Copy** (`--copy`)     | Crea copias independientes. Usar cuando symlinks no estan soportados.                |
 
+### Donde instalar skills en una arquitectura de microservicios
+
+En muchos equipos, los developers trabajan desde una **carpeta raiz local** que contiene multiples microservicios (cada subcarpeta con su propio repo Git). En ese escenario, para no reinstalar la misma skill en cada repo, hay dos scopes recomendados:
+
+| Escenario | Scope recomendado | Por que |
+| --------- | ----------------- | ------- |
+| Skill compartida para trabajar toda la flota desde el root local (`microservices/`) | **Project** en el root local | Una sola instalacion visible para el agente cuando se ejecuta en esa raiz; evita duplicar instalacion en cada microservicio |
+| Skill personal reusable en muchos proyectos | **Global** (`-g`) | Evita reinstalar en distintos workspaces y no toca estructura local del proyecto |
+
+Recomendaciones practicas (alineadas con `skills.sh` + Agent Skills spec):
+
+- Si el flujo diario se hace desde el root de microservicios, instalar en ese root (`npx skills add ...`) para compartir una sola capa local entre repos.
+- Usar **`-g`** cuando el developer quiera disponibilidad en todos sus proyectos, sin depender del root local.
+- Preferir **symlinks** (metodo por defecto) para mantener una sola copia canonica y facilitar updates.
+- Verificar siempre la **visibilidad real del agente**: la skill debe existir en una ruta que ese agente escanee (`.agents/skills/`, `.claude/skills/`, `.cline/skills/`, etc.) y el agente debe ejecutarse desde ese workspace.
+
+Ejemplo para un fleet local con `crons/`, `react/`, `sap/`, `integrator/`, etc.:
+
+```bash
+# Recomendado: instalar una sola vez en la raiz local de microservicios
+cd microservices
+npx skills add https://github.com/rcrespo-tripulse/tripulse-skills
+
+# Opcional: disponibilidad global personal en todos tus proyectos
+npx skills add https://github.com/rcrespo-tripulse/tripulse-skills -g
+```
+
+Resultado esperado en local (ejemplo):
+
+```text
+microservices/
+├── .agents/skills/
+├── .claude/
+├── crons/
+├── react/
+├── sap/
+├── integrator/
+└── ...
+```
+
 ### Comandos utiles de operacion
 
 ```bash
@@ -407,3 +447,4 @@ npx skills init [name]       # Crear template de SKILL.md
 - [skills.sh CLI docs](https://skills.sh/docs/cli) — Referencia de la CLI
 - [vercel-labs/skills](https://github.com/vercel-labs/skills) — Repositorio de la CLI (incluye tabla completa de agentes)
 - [Agent Skills Specification](https://agentskills.io) — Especificacion compartida entre agentes
+- [Skill Discovery paths (vercel-labs/skills)](https://github.com/vercel-labs/skills?tab=readme-ov-file#skill-discovery) — Rutas estandar que los agentes escanean para encontrar `SKILL.md`
