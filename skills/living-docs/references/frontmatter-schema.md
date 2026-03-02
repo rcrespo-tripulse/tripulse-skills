@@ -63,7 +63,7 @@ doc_version: "1.2.0"
 ---
 ```
 
-## Flow Docs (`docs-microservices/strategy/data-flows/{flow-name}.md`)
+## Flow Docs (`vault/strategy/data-flows/{flow-name}.md`)
 
 ```yaml
 ---
@@ -86,7 +86,7 @@ complexity: high                          # low | medium | high
 
 This is the critical field for cross-service impact detection. When living-docs updates a service's docs, it checks all flow docs to see if the service appears in any `services` array. If it does, the flow is flagged for review.
 
-## ADR Docs (`docs-microservices/engineering/adrs/{NNN}-{slug}.md`)
+## ADR Docs (`vault/engineering/adrs/{NNN}-{slug}.md`)
 
 ```yaml
 ---
@@ -105,7 +105,7 @@ authors: [rodrigo]                        # People who made the decision
 ---
 ```
 
-## System Overview (`docs-microservices/engineering/`)
+## System Overview (`vault/engineering/`)
 
 ```yaml
 ---
@@ -120,7 +120,7 @@ last_updated: 2026-03-01
 ---
 ```
 
-## Entry Point (`docs-microservices/Global_Architecture_Map.md`)
+## Entry Point (`vault/Global_Architecture_Map.md`)
 
 ```yaml
 ---
@@ -212,9 +212,9 @@ Note: The CTO's standard uses `status` for the component/service health. The liv
 |-----|---------------|----------|
 | `[magento]` | docs-magento repo | B2B module docs, Magento SOPs, theme architecture |
 | `[nextjs]` | docs-nextjs repo | Portal components, React BFF consumer docs |
-| `[microservices]` | docs-microservices repo | Service architectures, database schemas, ETL logic |
-| `[backend]` | docs-microservices repo | Backend SOPs, testing guides, API contracts |
-| `[devops]` | docs-microservices repo | Infrastructure, CI/CD, deployment |
+| `[microservices]` | vault repo | Service architectures, database schemas, ETL logic |
+| `[backend]` | vault repo | Backend SOPs, testing guides, API contracts |
+| `[devops]` | vault repo | Infrastructure, CI/CD, deployment |
 | `[frontend]` | docs-nextjs repo | UI components, state management, i18n |
 | `[client]` | docs-client repo | Customer-facing user guides |
 | `[internal-only]` | Master vault only | Gap registries, security findings, strategic plans, agent config |

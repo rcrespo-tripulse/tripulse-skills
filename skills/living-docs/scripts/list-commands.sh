@@ -32,7 +32,7 @@ Commands:
      Prompt: living-docs:document-commits 20
 
   4) sync
-     What: Sync per-service docs into docs-microservices structure.
+     What: Sync per-service docs into vault structure.
      When: Per-service docs are ready and you want to publish centrally.
      Prompt: living-docs:sync
 

@@ -1,10 +1,10 @@
-# Central Mapping: Per-MS Docs to docs-microservices
+# Central Mapping: Per-MS Docs to vault
 
-This reference defines how the `sync` command maps per-microservice documentation to the Obsidian Vault structure in `docs-microservices/`.
+This reference defines how the `sync` command maps per-microservice documentation to the Obsidian Vault structure in `vault/`.
 
 ## Mapping Table
 
-| Per-MS Source | docs-microservices Target | Notes |
+| Per-MS Source | vault Target | Notes |
 |---|---|---|
 | `docs/index.md` | (not synced) | Navigation index is local to the service repo |
 | `docs/components/*.md` | `reference/{repo}/` | Component docs and service overviews |
@@ -20,7 +20,7 @@ This reference defines how the `sync` command maps per-microservice documentatio
 ## Obsidian Vault Structure Reference
 
 ```
-docs-microservices/
+vault/
 ├── CLAUDE.MD.md
 ├── Global_Architecture_Map.md        <-- Entry point
 ├── engineering/
@@ -49,7 +49,7 @@ docs-microservices/
 
 ## Rules
 
-1. **Never create new top-level folders** in docs-microservices. Use the existing structure.
+1. **Never create new top-level folders** in vault. Use the existing structure.
 2. **Create `reference/{repo}/`** subdirectory if it doesn't exist before syncing component/technical docs.
 3. **Create `engineering/microservices/{repo}/`** subdirectory if it doesn't exist before syncing task docs.
 4. **Preserve existing files** in the target directories. Only overwrite files that originated from the skill (check naming convention).

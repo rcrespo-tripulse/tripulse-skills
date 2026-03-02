@@ -18,7 +18,7 @@ ms-root/
 ├── sap/docs/index.md              <-- SOURCE OF TRUTH (Layer 3)
 ├── magento/docs/index.md          <-- SOURCE OF TRUTH (Layer 3)
 ├── integrator/docs/index.md       <-- SOURCE OF TRUTH (Layer 3)
-└── docs-microservices/            <-- Obsidian Vault structure (transversal + gathered copies)
+└── vault/            <-- Obsidian Vault structure (transversal + gathered copies)
     ├── Global_Architecture_Map.md <-- ENTRY POINT (root of navigation)
     ├── CLAUDE.MD.md               <-- Agent rules and vault config
     ├── engineering/               <-- SOURCE OF TRUTH (Layer 1 + Layer 4)
@@ -38,7 +38,7 @@ ms-root/
         └── ...                    <-- Plans, registries
 ```
 
-> **Important**: `docs-microservices/` follows the Obsidian Vault structure exactly. The skill must never invent new top-level folders (`engineering/`, `reference/`, `reports/`, `strategy/`, `archive/`, etc. are the only valid top-level directories). Gathered copies are distributed across these directories according to the mapping in `references/central-mapping.md`, NOT mirrored in a flat `services/` directory.
+> **Important**: `vault/` follows the Obsidian Vault structure exactly. The skill must never invent new top-level folders (`engineering/`, `reference/`, `reports/`, `strategy/`, `archive/`, etc. are the only valid top-level directories). Gathered copies are distributed across these directories according to the mapping in `references/central-mapping.md`, NOT mirrored in a flat `services/` directory.
 
 **Why co-locate per-service docs?**
 - The doc versions with the code. `git blame` shows when each part changed.
@@ -47,15 +47,15 @@ ms-root/
 - PRs that change behavior can include doc changes in the same commit.
 - No cross-repo dependency for the most common doc operation (update after code change).
 
-**Why aggregate in docs-microservices?**
+**Why aggregate in vault?**
 - Transversal docs (flows, overview, ADRs) don't belong to any single service.
 - The `Global_Architecture_Map.md` needs a single home as the entry point.
 - Having gathered copies enables reading all service docs from one repo (useful for overview generation, search, CI).
 
 ## Layer 1: System Overview
 
-**Source of truth**: `docs-microservices/engineering/`
-**Entry point**: `docs-microservices/Global_Architecture_Map.md`
+**Source of truth**: `vault/engineering/`
+**Entry point**: `vault/Global_Architecture_Map.md`
 **Audience**: New team members, architects, management, agents needing broad context
 **Update frequency**: When services are added/removed or architecture changes significantly
 **Owner**: Tech lead / architect
@@ -72,7 +72,7 @@ Contains:
 
 ## Layer 2: Business Flows
 
-**Source of truth**: `docs-microservices/strategy/data-flows/`
+**Source of truth**: `vault/strategy/data-flows/`
 **Audience**: Developers working on features that cross services, QA, product managers
 **Update frequency**: When flow behavior changes (flagged by living-docs, updated manually)
 **Owner**: Developer most familiar with the flow
@@ -95,7 +95,7 @@ This enables automated impact detection when a service changes.
 ## Layer 3: Per-Service Documentation
 
 **Source of truth**: `{ms-root}/{service}/docs/index.md` (in the service's own git repo)
-**Gathered copies**: Distributed across `docs-microservices/` per the Obsidian Vault structure (see central-mapping.md)
+**Gathered copies**: Distributed across `vault/` per the Obsidian Vault structure (see central-mapping.md)
 **Audience**: Developers working on that specific service, agents executing tasks
 **Update frequency**: After every merge to main (automated by living-docs)
 **Owner**: living-docs (automated) with human review
@@ -121,7 +121,7 @@ Contains:
 
 ## Layer 4: Architecture Decision Records (ADRs)
 
-**Source of truth**: `docs-microservices/engineering/adrs/`
+**Source of truth**: `vault/engineering/adrs/`
 **Audience**: Future selves, new architects, anyone asking "but why?"
 **Update frequency**: When significant decisions are made
 **Owner**: The person who made the decision
@@ -154,7 +154,7 @@ integrator/docs/index.md           (source of truth)
 - Lower layers reference higher layers only for context (service doc -> "part of [Order Flow](../flows/order-b2b.md)")
 - ADRs are referenced from any layer where the decision is relevant
 - The `Global_Architecture_Map.md` is the universal entry point -- always keep it updated
-- Cross-references in docs-microservices use the Vault-structure paths
+- Cross-references in vault use the Vault-structure paths
 - Cross-references in per-MS docs use relative paths within the service
 
 ## The Gather Process
@@ -170,7 +170,7 @@ integrator/docs/components/*.md ───────┤  (maps per doc type)
 integrator/docs/tasks/*.md ────────────┘
                                         |
                                         v
-                          docs-microservices/
+                          vault/
                           ├── engineering/
                           │   ├── adrs/              <-- ADRs from all services
                           │   └── microservices/

@@ -9,7 +9,7 @@ All notable changes to this skill will be documented in this file.
 ### Added
 - **Command-based interface**: 9 explicit commands (`document`, `document-branch`, `document-commits`, `sync`, `migrate-legacy`, `audit`, `document-flow`, `create-adr`, `system-overview`)
 - **4-Layer Documentation System**: System overview, flows, per-MS docs, ADRs — each with clear source of truth
-- **CTO Vault alignment**: All central docs mapped to the existing `docs-microservices/` structure (`engineering/`, `reference/`, `reports/`, `strategy/`)
+- **CTO Vault alignment**: All central docs mapped to the existing `vault/` structure (`engineering/`, `reference/`, `reports/`, `strategy/`)
 - **New scripts**:
   - `detect-changes.sh` — Categorize changes by type with priority levels (from new version)
   - `check-freshness.sh` — Compare doc timestamps vs last code change, adapted for CTO paths (from new version)
@@ -23,7 +23,7 @@ All notable changes to this skill will be documented in this file.
 - **New references**:
   - `documentation-layers.md` — The 4-layer documentation system
   - `frontmatter-schema.md` — Complete frontmatter schema (CTO base + extensions)
-  - `central-mapping.md` — Mapping from per-MS paths to docs-microservices paths
+  - `central-mapping.md` — Mapping from per-MS paths to vault paths
   - `ci-integration.md` — GitHub Actions workflow examples
 - **Sacred Documents rule**: Never overwrite content authored by Erick Blangino or Jorge Cruz
 - **Audience tag**: Required in frontmatter per CTO's distribution model
@@ -38,9 +38,9 @@ All notable changes to this skill will be documented in this file.
 - **Central mapping**: `sync` command maps per-MS docs to CTO Vault paths (not a flat `services/` mirror)
 - **Workflow**: Replaced linear 8-step pipeline with case-based command instructions
 - **analysis-patterns.md**: Merged with new version's commit-analysis-guide (10 detailed change categories, priority matrix)
-- **docs-microservices entry point**: Uses CTO's `Global_Architecture_Map.md` (not CATALOG.md)
-- **Flow docs location**: `docs-microservices/strategy/data-flows/` (not `flows/`)
-- **ADR location**: `docs-microservices/engineering/adrs/` (not `decisions/`)
+- **vault entry point**: Uses CTO's `Global_Architecture_Map.md` (not CATALOG.md)
+- **Flow docs location**: `vault/strategy/data-flows/` (not `flows/`)
+- **ADR location**: `vault/engineering/adrs/` (not `decisions/`)
 
 ### Removed
 - `templates.md` reference file (replaced by individual template files)
@@ -49,7 +49,7 @@ All notable changes to this skill will be documented in this file.
 - Gathered copies / services/ mirror concept (replaced by direct mapping to CTO structure)
 
 ### Fixed
-- Aligned skill output with actual CTO Vault structure in docs-microservices
+- Aligned skill output with actual CTO Vault structure in vault
 - Addressed mismatch where skill assumed no docs existed (many services already have docs/)
 - Standardized index.md naming (was inconsistent: index.md vs integrator_docs_index.md vs utilities_main_index.md)
 - Frontmatter now compatible with CTO's distribution model (audience tags)

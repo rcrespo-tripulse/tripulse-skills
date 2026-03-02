@@ -38,7 +38,7 @@ The skill must infer architecture from evidence, not from framework assumptions.
 | `document-branch` | Document current branch changes vs base branch | Per-service |
 | `document-commits [N]` | Document last N commits | Per-service |
 | `cmd-list` | Show available living-docs commands and when to use each one | Meta |
-| `sync` | Sync per-MS docs to docs-microservices (CTO structure) | Central |
+| `sync` | Sync per-MS docs to vault (CTO structure) | Central |
 | `migrate-legacy` | Detect and migrate pre-existing docs to standard format | Per-service |
 | `audit` | Freshness audit of all per-MS docs | All services |
 | `document-flow [name]` | Create/update cross-service flow documentation | Central |
@@ -114,7 +114,7 @@ ms-root/                              # Non-git parent directory (e.g., /home/us
 ├── sap/                              # Git repo
 │   └── docs/
 │       └── ...
-└── docs-microservices/               # Git repo — Obsidian Vault structure
+└── vault/               # Git repo — Obsidian Vault structure
     ├── CLAUDE.MD.md                  ← Agent rules and vault config
     ├── Global_Architecture_Map.md    ← ENTRY POINT for navigation
     ├── engineering/
@@ -144,9 +144,9 @@ ms-root/                              # Non-git parent directory (e.g., /home/us
 ### Source of Truth Rules
 
 1. **Per-MS docs** (`{ms-root}/{service}/docs/`) are the authoritative source. This is where living-docs generates and updates documentation.
-2. **docs-microservices/** follows the Obsidian Vault structure. Never invent new top-level folders. The `sync` command copies per-MS docs to the correct Vault paths.
-3. **Transversal docs** (system overview, flows, ADRs, architecture map) live ONLY in docs-microservices. They don't belong to any single service.
-4. **Never edit docs-microservices directly** for per-service content — generate in the service repo first, then sync.
+2. **vault/** follows the Obsidian Vault structure. Never invent new top-level folders. The `sync` command copies per-MS docs to the correct Vault paths.
+3. **Transversal docs** (system overview, flows, ADRs, architecture map) live ONLY in vault. They don't belong to any single service.
+4. **Never edit vault directly** for per-service content — generate in the service repo first, then sync.
 5. **Sacred Documents**: Docs authored by [[Erick Blangino]] or [[Jorge Cruz]] are preserved verbatim. Append new sections — never edit their original content.
 
 ---
@@ -157,10 +157,10 @@ Read `references/documentation-layers.md` for full details. Summary:
 
 | Layer | What | Source of Truth | Updated by |
 |---|---|---|---|
-| 1. System Overview | Architecture, service map, glossary | `docs-microservices/engineering/` | `system-overview` command (rare) |
-| 2. Flows | End-to-end business flows across services | `docs-microservices/strategy/data-flows/` | `document-flow` command |
+| 1. System Overview | Architecture, service map, glossary | `vault/engineering/` | `system-overview` command (rare) |
+| 2. Flows | End-to-end business flows across services | `vault/strategy/data-flows/` | `document-flow` command |
 | 3. Per-MS Docs | Endpoints, modules, internal decisions | `{service}/docs/` | `document` / `document-branch` commands |
-| 4. ADRs | Architecture decisions with context | `docs-microservices/engineering/adrs/` | `create-adr` command |
+| 4. ADRs | Architecture decisions with context | `vault/engineering/adrs/` | `create-adr` command |
 
 ---
 
@@ -194,7 +194,7 @@ Read `references/documentation-layers.md` for full details. Summary:
 
 **Pattern**: `${REPO}_${TYPE_CODE}_${SLUG}.md`
 
-Always use the prefix, even inside the service repo. This ensures files are identifiable when synced to docs-microservices.
+Always use the prefix, even inside the service repo. This ensures files are identifiable when synced to vault.
 
 | Doc Type | Folder | Type Code | Example |
 |----------|--------|-----------|---------|
@@ -467,7 +467,7 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
    - If the diff reveals potential regressions/inconsistencies, add `Risks & Inconsistencies` entries with severity/evidence and cross-link bug reports for high/critical items.
 
 5. **Check for flow impact** (critical step):
-   If docs-microservices exists, read frontmatter of all docs in `strategy/data-flows/`. If any flow lists this service in its `services:` array, flag it:
+   If vault exists, read frontmatter of all docs in `strategy/data-flows/`. If any flow lists this service in its `services:` array, flag it:
    ```
    ⚠️ FLOW IMPACT DETECTED:
    - strategy/data-flows/order-b2b-flow.md references this service
@@ -503,14 +503,14 @@ Default N = 20 unless user specifies otherwise.
    ```bash
    bash <skill-path>/scripts/sync-to-central.sh \
      --repos-dir <ms-root> \
-     --docs-repo <ms-root>/docs-microservices
+     --docs-repo <ms-root>/vault
    ```
 
 2. **Review the output**: The script shows what was copied, updated, or skipped.
 
 3. **Mapping rules** (see `references/central-mapping.md` for full table):
    ```
-   Per-MS docs/              → docs-microservices/
+   Per-MS docs/              → vault/
    docs/components/*.md      → reference/{repo}/
    docs/changelogs/*.md      → reports/changelogs/
    docs/adrs/*.md            → engineering/adrs/
@@ -584,7 +584,7 @@ Default N = 20 unless user specifies otherwise.
 
 4. **For undocumented services**, offer to run `document [service]` (full generation).
 
-5. **Check flow docs**: For each flow doc in `docs-microservices/strategy/data-flows/`, verify all referenced services have current docs. Flag any flows that reference stale services.
+5. **Check flow docs**: For each flow doc in `vault/strategy/data-flows/`, verify all referenced services have current docs. Flag any flows that reference stale services.
 
 ---
 
@@ -614,9 +614,9 @@ Default N = 20 unless user specifies otherwise.
    - Reference specific files/functions in each service
    - Document retry behavior and dead letter queues
 
-6. **Save to docs-microservices**:
+6. **Save to vault**:
    ```
-   docs-microservices/strategy/data-flows/{flow-name}.md
+   vault/strategy/data-flows/{flow-name}.md
    ```
    With frontmatter including `services: [list]` array for impact detection.
 
@@ -639,11 +639,11 @@ Default N = 20 unless user specifies otherwise.
    - What alternatives were considered?
    - What are the consequences/trade-offs?
 
-2. **Number it**: Read existing ADRs in `docs-microservices/engineering/adrs/`, take the next number.
+2. **Number it**: Read existing ADRs in `vault/engineering/adrs/`, take the next number.
 
 3. **Generate ADR** using `templates/adr.md`.
 
-4. **Save** to `docs-microservices/engineering/adrs/{NNN}-{slug}.md`.
+4. **Save** to `vault/engineering/adrs/{NNN}-{slug}.md`.
 
 **Rules**:
 - ADRs are immutable once merged. If a decision is reversed, create a new ADR that supersedes the old one.
@@ -678,7 +678,7 @@ Default N = 20 unless user specifies otherwise.
    - Communication patterns
    - Domain glossary
 
-5. **Save** to `docs-microservices/engineering/` (coordinate with existing `Global_Architecture_Map.md`).
+5. **Save** to `vault/engineering/` (coordinate with existing `Global_Architecture_Map.md`).
 
 ---
 
@@ -793,11 +793,11 @@ l0m1n2o chore: add passport-google-oauth20 dependency
 - `scripts/get-repo-name.sh` — Get the current git repository name
 - `scripts/detect-changes.sh` — Categorize changes by type with priority levels
 - `scripts/check-freshness.sh` — Compare doc timestamps vs last code change
-- `scripts/sync-to-central.sh` — Sync per-MS docs to docs-microservices (CTO structure)
+- `scripts/sync-to-central.sh` — Sync per-MS docs to vault (CTO structure)
 - `references/analysis-patterns.md` — How to classify changes from diffs
 - `references/documentation-layers.md` — The 4-layer documentation system
 - `references/frontmatter-schema.md` — Frontmatter schema and validation rules
-- `references/central-mapping.md` — Mapping from per-MS paths to docs-microservices paths
+- `references/central-mapping.md` — Mapping from per-MS paths to vault paths
 - `references/ci-integration.md` — GitHub Actions workflow examples
 - `templates/section-business-rules.md` — Reusable section template for business rule documentation
 - `templates/section-helpers-utilities.md` — Reusable section template for helper/utility documentation

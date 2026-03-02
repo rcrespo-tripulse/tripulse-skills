@@ -12,10 +12,10 @@ The new model has two phases because docs live in two places:
 3. CI updates `{service}/docs/index.md` within the same repo
 4. CI opens a PR in the service repo with the doc changes
 
-**Phase 2 -- Sync into docs-microservices** (runs in docs-microservices CI or manually):
+**Phase 2 -- Sync into vault** (runs in vault CI or manually):
 1. Triggered after Phase 1 PRs merge, or on schedule
-2. Runs `sync-to-central.sh` to map per-MS docs into the Obsidian Vault structure in docs-microservices
-3. Opens a PR in docs-microservices with synced changes
+2. Runs `sync-to-central.sh` to map per-MS docs into the Obsidian Vault structure in vault
+3. Opens a PR in vault with synced changes
 4. Optionally checks flow impact
 
 This separation keeps each repo's CI simple and avoids cross-repo write dependencies.
@@ -139,9 +139,9 @@ Add `scripts/living-docs/` to each repo. Simpler but harder to keep in sync.
 **Option C -- npm/package dependency**:
 Publish living-docs scripts as a package. Install in CI. Best for larger teams.
 
-## Phase 2: Sync into docs-microservices
+## Phase 2: Sync into vault
 
-Place this in the docs-microservices repo at `.github/workflows/sync-docs.yml`:
+Place this in the vault repo at `.github/workflows/sync-docs.yml`:
 
 ```yaml
 name: Sync Service Docs to Vault
@@ -163,7 +163,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout docs-microservices
+      - name: Checkout vault
         uses: actions/checkout@v4
 
       - name: Checkout all service repos
@@ -210,7 +210,7 @@ jobs:
             ## Auto-synced from service repos
 
             This PR syncs per-service documentation from each service's
-            `docs/` directory into the Obsidian Vault structure in docs-microservices.
+            `docs/` directory into the Obsidian Vault structure in vault.
 
             Mapping rules (see `references/central-mapping.md`):
             - `docs/components/` -> `reference/{repo}/`
@@ -229,7 +229,7 @@ jobs:
 
 ## Freshness Audit (scheduled)
 
-Add to docs-microservices at `.github/workflows/freshness-audit.yml`:
+Add to vault at `.github/workflows/freshness-audit.yml`:
 
 ```yaml
 name: Doc Freshness Audit
@@ -275,12 +275,12 @@ jobs:
 
 | Secret | Purpose | Where |
 |--------|---------|-------|
-| `DOCS_REPO_TOKEN` | GitHub PAT with repo scope | Each service repo + docs-microservices |
+| `DOCS_REPO_TOKEN` | GitHub PAT with repo scope | Each service repo + vault |
 
 ## Important Notes
 
 1. **Phase 1 creates PRs in the service repo** -- doc changes version with the code.
-2. **Phase 2 syncs copies to the Vault structure** -- it maps each doc type to its correct location in docs-microservices (not a flat mirror).
+2. **Phase 2 syncs copies to the Vault structure** -- it maps each doc type to its correct location in vault (not a flat mirror).
 3. **Neither phase auto-merges**. Human review is always required.
 4. **The doc generation step in Phase 1 is a placeholder.** Options: Claude API call, deterministic script, or manual flag. Start with just updating frontmatter and grow from there.
 5. **Start simple**: Begin by just running `detect_changes.sh` and `check-freshness.sh` in CI. Add automated generation later.

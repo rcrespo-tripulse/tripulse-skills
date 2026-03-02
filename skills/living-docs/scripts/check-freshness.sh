@@ -3,9 +3,9 @@
 #
 # Reads docs from each service's source of truth ({service}/docs/index.md)
 # and compares last_documented_sha against the repo's current HEAD.
-# Also checks if per-MS docs exist in docs-microservices.
+# Also checks if per-MS docs exist in vault.
 #
-# Usage: bash check_freshness.sh --repos-dir /path/to/ms-root [--docs-repo /path/to/docs-microservices]
+# Usage: bash check_freshness.sh --repos-dir /path/to/ms-root [--docs-repo /path/to/vault]
 
 set -euo pipefail
 
@@ -21,13 +21,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$REPOS_DIR" ]]; then
-  echo "Usage: bash check_freshness.sh --repos-dir /path/to/ms-root [--docs-repo /path/to/docs-microservices]"
+  echo "Usage: bash check_freshness.sh --repos-dir /path/to/ms-root [--docs-repo /path/to/vault]"
   exit 1
 fi
 
 # Auto-detect docs repo if not specified
-if [[ -z "$DOCS_REPO" && -d "$REPOS_DIR/docs-microservices" ]]; then
-  DOCS_REPO="$REPOS_DIR/docs-microservices"
+if [[ -z "$DOCS_REPO" && -d "$REPOS_DIR/vault" ]]; then
+  DOCS_REPO="$REPOS_DIR/vault"
 fi
 
 echo "=== Documentation Freshness Report ==="
@@ -51,8 +51,8 @@ for repo_dir in "$REPOS_DIR"/*/; do
 
   SERVICE_NAME=$(basename "$repo_dir")
 
-  # Skip docs-microservices itself
-  [[ "$SERVICE_NAME" == "docs-microservices" ]] && continue
+  # Skip vault itself
+  [[ "$SERVICE_NAME" == "vault" ]] && continue
 
   TOTAL_SERVICES=$((TOTAL_SERVICES + 1))
 
@@ -101,10 +101,10 @@ echo "Current: $CURRENT"
 echo "Stale: $STALE"
 echo "No docs: $NO_DOCS"
 
-# Check which per-MS docs exist in docs-microservices
+# Check which per-MS docs exist in vault
 if [[ -n "$DOCS_REPO" && -d "$DOCS_REPO" ]]; then
   echo ""
-  echo "=== Per-MS Docs in docs-microservices ==="
+  echo "=== Per-MS Docs in vault ==="
   echo "(checking which services have synced docs in the CTO Vault)"
   echo ""
 
@@ -114,9 +114,9 @@ if [[ -n "$DOCS_REPO" && -d "$DOCS_REPO" ]]; then
   for repo_dir in "$REPOS_DIR"/*/; do
     [[ ! -d "$repo_dir/.git" ]] && continue
     SERVICE_NAME=$(basename "$repo_dir")
-    [[ "$SERVICE_NAME" == "docs-microservices" ]] && continue
+    [[ "$SERVICE_NAME" == "vault" ]] && continue
 
-    # Check if this service has any docs in docs-microservices (any of the target paths)
+    # Check if this service has any docs in vault (any of the target paths)
     FOUND=false
     for check_dir in \
       "$DOCS_REPO/reference/$SERVICE_NAME" \
@@ -128,7 +128,7 @@ if [[ -n "$DOCS_REPO" && -d "$DOCS_REPO" ]]; then
     done
 
     if [[ "$FOUND" == "true" ]]; then
-      echo "  ✅ $SERVICE_NAME — docs present in docs-microservices"
+      echo "  ✅ $SERVICE_NAME — docs present in vault"
       HAS_DOCS=$((HAS_DOCS + 1))
     else
       # Only report missing if the service has source docs to sync

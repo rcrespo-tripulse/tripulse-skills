@@ -1,5 +1,5 @@
 #!/bin/bash
-# sync-to-central.sh - Sync per-MS docs to docs-microservices (CTO Vault structure)
+# sync-to-central.sh - Sync per-MS docs to vault (CTO Vault structure)
 #
 # Maps per-service documentation to the CTO's centralized Vault structure.
 # This is NOT a simple copy — each doc type goes to a different location.
@@ -17,9 +17,9 @@
 #   {service}/docs/index.md         → NOT synced (local navigation only)
 #
 # Usage:
-#   bash sync-to-central.sh --repos-dir /path/to/ms-root --docs-repo /path/to/docs-microservices
-#   bash sync-to-central.sh --repos-dir /path/to/ms-root --docs-repo /path/to/docs-microservices --service sap
-#   bash sync-to-central.sh --repos-dir /path/to/ms-root --docs-repo /path/to/docs-microservices --dry-run
+#   bash sync-to-central.sh --repos-dir /path/to/ms-root --docs-repo /path/to/vault
+#   bash sync-to-central.sh --repos-dir /path/to/ms-root --docs-repo /path/to/vault --service sap
+#   bash sync-to-central.sh --repos-dir /path/to/ms-root --docs-repo /path/to/vault --dry-run
 
 set -euo pipefail
 
@@ -39,7 +39,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$REPOS_DIR" || -z "$DOCS_REPO" ]]; then
-  echo "Usage: bash sync-to-central.sh --repos-dir /path/to/ms-root --docs-repo /path/to/docs-microservices [--service name] [--dry-run]"
+  echo "Usage: bash sync-to-central.sh --repos-dir /path/to/ms-root --docs-repo /path/to/vault [--service name] [--dry-run]"
   exit 1
 fi
 
@@ -195,8 +195,8 @@ else
   for repo_dir in "$REPOS_DIR"/*/; do
     [[ ! -d "$repo_dir/.git" ]] && continue
     service_name=$(basename "$repo_dir")
-    # Skip docs-microservices itself
-    [[ "$service_name" == "docs-microservices" ]] && continue
+    # Skip vault itself
+    [[ "$service_name" == "vault" ]] && continue
     sync_service "$service_name"
   done
 fi
@@ -225,6 +225,6 @@ fi
 
 if [[ "$DRY_RUN" == "false" && "$SYNCED" -gt 0 ]]; then
   echo ""
-  echo "Files synced. Remember to review and commit in docs-microservices:"
+  echo "Files synced. Remember to review and commit in vault:"
   echo "  cd $DOCS_REPO && git diff"
 fi
