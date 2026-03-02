@@ -33,6 +33,18 @@ Instalacion por skill especifica:
 | [`skill-creator`](./skills/skill-creator/SKILL.md) | `skills/skill-creator/` | Meta-skill que guia la creacion de nuevas skills | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill skill-creator` |
 | [`prompt-engineering-patterns`](./.agents/skills/prompt-engineering-patterns/SKILL.md) | `.agents/skills/prompt-engineering-patterns/` | Patrones avanzados de prompt engineering para produccion | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill prompt-engineering-patterns` |
 
+### living-docs en accion
+
+Listado de comandos disponibles de la skill `living-docs`:
+
+![living-docs: lista de comandos disponibles](./docs/assets/living-docs-list-cmds.png)
+
+Ejemplo de ejecucion del comando `sync` para sincronizar documentacion entre repositorios:
+
+![living-docs sync — paso 1](./docs/assets/living-docs-sync-cmd_1.png)
+
+![living-docs sync — paso 2](./docs/assets/living-docs-sync-cmd_2.png)
+
 ## 2) Que son las Skills
 
 Las **skills** son capacidades reutilizables para agentes de IA. En la practica, son paquetes de conocimiento procedimental (instrucciones, flujos y convenciones) que un agente puede cargar para ejecutar tareas especializadas con mas consistencia.
@@ -402,6 +414,18 @@ npx skills add https://github.com/rcrespo-tripulse/tripulse-skills
 npx skills add https://github.com/rcrespo-tripulse/tripulse-skills -g
 ```
 
+![Instalacion desde la raiz de microservices](./docs/assets/install-from-microservices.png)
+
+Durante la instalacion interactiva, la CLI permite seleccionar los agentes destino y las skills a instalar:
+
+![Seleccion de agentes](./docs/assets/install-agent-select.png)
+
+![Seleccion de skills](./docs/assets/install-skill-select.png)
+
+![Resumen y advertencia de seguridad](./docs/assets/install-summary-security.png)
+
+![Instalacion completada](./docs/assets/install-complete.png)
+
 Resultado esperado en local (ejemplo):
 
 ```text
@@ -425,6 +449,12 @@ npx skills update            # Actualizar skills a ultima version
 npx skills remove [skills]   # Eliminar skills instaladas
 npx skills init [name]       # Crear template de SKILL.md
 ```
+
+Ejemplos de como las skills instaladas son visibles directamente en el IDE para distintos agentes:
+
+![Skills listadas en Antigravity](./docs/assets/ide_list_skills_antigravity.png)
+
+![Skills listadas en OpenCode](./docs/assets/ide_list_skills_opencode.png)
 
 ## 9) Seguridad y gobernanza
 
