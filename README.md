@@ -32,6 +32,8 @@ Instalacion por skill especifica:
 | [`living-docs`](./skills/living-docs/SKILL.md) | `skills/living-docs/` | Genera documentacion viva (changelogs, ADRs, runbooks) a partir de diffs de git | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill living-docs` |
 | [`skill-creator`](./skills/skill-creator/SKILL.md) | `skills/skill-creator/` | Meta-skill que guia la creacion de nuevas skills | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill skill-creator` |
 | [`prompt-engineering-patterns`](./.agents/skills/prompt-engineering-patterns/SKILL.md) | `.agents/skills/prompt-engineering-patterns/` | Patrones avanzados de prompt engineering para produccion | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill prompt-engineering-patterns` |
+| [`sap-business-one-servicer-layer-sql`](./skills/sap-business-one-servicer-layer-sql/SKILL.md) | `skills/sap-business-one-servicer-layer-sql/` | Guia de integracion con SAP Business One Service Layer: autenticacion, OData, QueryService, batch y configuracion | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill sap-business-one-servicer-layer-sql` |
+| [`typescript-advanced-types`](./skills/typescript-advanced-types/SKILL.md) | `skills/typescript-advanced-types/` | Dominio del sistema de tipos avanzado de TypeScript: generics, tipos condicionales, mapped types, template literals y utility types | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill typescript-advanced-types` |
 
 ### living-docs en accion
 
