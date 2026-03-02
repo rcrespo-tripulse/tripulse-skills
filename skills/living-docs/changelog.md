@@ -4,68 +4,99 @@ All notable changes to this skill will be documented in this file.
 
 ---
 
+## [3.0.0] - 2026-03-02
+
+### Added
+- **Command-based interface**: 9 explicit commands (`document`, `document-branch`, `document-commits`, `sync`, `migrate-legacy`, `audit`, `document-flow`, `create-adr`, `system-overview`)
+- **4-Layer Documentation System**: System overview, flows, per-MS docs, ADRs — each with clear source of truth
+- **CTO Vault alignment**: All central docs mapped to the existing `docs-microservices/` structure (`engineering/`, `reference/`, `reports/`, `strategy/`)
+- **New scripts**:
+  - `detect-changes.sh` — Categorize changes by type with priority levels (from new version)
+  - `check-freshness.sh` — Compare doc timestamps vs last code change, adapted for CTO paths (from new version)
+  - `sync-to-central.sh` — Sync per-MS docs to CTO Vault structure (rewrite of gather_docs.sh)
+- **New templates**:
+  - `navigation-index.md` — Standardized navigation index for docs/index.md
+  - `ms-overview.md` — Comprehensive service overview component doc
+  - `flow.md` — Cross-service flow documentation
+  - `system-overview.md` — System-level architecture overview
+- **Templates split into individual files**: Each doc type now has its own template file (previously all in templates.md)
+- **New references**:
+  - `documentation-layers.md` — The 4-layer documentation system
+  - `frontmatter-schema.md` — Complete frontmatter schema (CTO base + extensions)
+  - `central-mapping.md` — Mapping from per-MS paths to docs-microservices paths
+  - `ci-integration.md` — GitHub Actions workflow examples
+- **Sacred Documents rule**: Never overwrite content authored by Erick Blangino or Jorge Cruz
+- **Audience tag**: Required in frontmatter per CTO's distribution model
+- **`last_documented_sha` tracking**: Enables incremental updates and freshness auditing
+- **Flow impact detection**: When updating per-MS docs, check flow docs for references to the service
+- **`migrate-legacy` command**: Detect and migrate pre-existing docs to standard format
+- **Red Flags section** in analysis-patterns.md: 6 conditions that always trigger warnings
+
+### Changed
+- **Frontmatter schema**: Now uses CTO's base schema (aliases, type, layer, status, owner, tech_stack, audience, last_updated) with extensions (last_documented_sha, commit_range, source_branch, doc_version)
+- **Folder structure**: `index.md` is now a navigation index (not a comprehensive service doc). Service overview goes in `components/{repo}_comp_overview.md`
+- **Central mapping**: `sync` command maps per-MS docs to CTO Vault paths (not a flat `services/` mirror)
+- **Workflow**: Replaced linear 8-step pipeline with case-based command instructions
+- **analysis-patterns.md**: Merged with new version's commit-analysis-guide (10 detailed change categories, priority matrix)
+- **docs-microservices entry point**: Uses CTO's `Global_Architecture_Map.md` (not CATALOG.md)
+- **Flow docs location**: `docs-microservices/strategy/data-flows/` (not `flows/`)
+- **ADR location**: `docs-microservices/engineering/adrs/` (not `decisions/`)
+
+### Removed
+- `templates.md` reference file (replaced by individual template files)
+- `get-doc-category.sh` script (logic now in sync-to-central.sh mapping)
+- `analyze_commits.sh` concept (extract-diff.sh is more robust)
+- Gathered copies / services/ mirror concept (replaced by direct mapping to CTO structure)
+
+### Fixed
+- Aligned skill output with actual CTO Vault structure in docs-microservices
+- Addressed mismatch where skill assumed no docs existed (many services already have docs/)
+- Standardized index.md naming (was inconsistent: index.md vs integrator_docs_index.md vs utilities_main_index.md)
+- Frontmatter now compatible with CTO's distribution model (audience tags)
+
+---
+
+## [2.0.2] - 2026-02-28
+
+### Changed
+- **Phase 2 structure updated** to match Tripulse Vault model:
+  - Added `reference/{repo}/` folders for per-repo component docs
+  - Added `engineering/adrs/` for Architecture Decision Records
+  - Added `engineering/microservices/{repo}/` for service architectures
+  - Added `reports/changelogs/` for changelogs
+  - Added folder creation commands (`mkdir -p`) before copying in merge step
+- **Frontmatter schema updated**: Added `adr` and `microservice` to type options, added `Microservices` to layer options
+
+### Fixed
+- Templates now include ADR type for vault compatibility
+
 ## [2.0.1] - 2026-02-28
 
 ### Added
-- **Activation signals section** in `SKILL.md` with high-confidence EN/ES trigger phrases for documentation-from-git intents.
-- **Intent-to-scope defaults** for common requests:
-  - feature/functionality -> current branch vs default branch
-  - current branch -> current branch vs default branch
-  - release notes/changelog -> last 20 commits (default)
-  - what changed -> branch diff first, fallback to commit-window analysis
-- **Ambiguity protocol** to require targeted clarification when repo/scope/branch materially affects output.
-- **Repository detection guard** for microservice roots when `git status` returns `fatal: not a git repository...`.
-- **Per-microservice execution rules** enforcing documentation generation only inside each selected git repo's `docs/` folder.
+- **Activation signals section** with high-confidence EN/ES trigger phrases
+- **Intent-to-scope defaults** for common requests
+- **Ambiguity protocol** to require targeted clarification
+- **Repository detection guard** for microservice roots
+- **Per-microservice execution rules**
 
 ### Changed
-- Refined skill frontmatter `description` to improve automatic trigger recall for bilingual requests and microservice-specific intents (`react`, `integrator`, `magento`, `all`).
-- Clarified multi-service behavior: process each selected microservice independently and present grouped summaries.
+- Refined skill frontmatter description
+- Clarified multi-service behavior
 
 ### Fixed
-- Prevented invalid output placement by explicitly forbidding doc generation outside git repositories or in shared workspace root paths.
+- Prevented invalid output placement outside git repositories
 
 ## [2.0.0] - 2026-02-28
 
 ### Added
-- **New document types**: Added 5 new templates
-  - Technical Guide: Deep technical documentation for architectures, patterns, integrations
-  - User Guide: How-to guides for developers/users
-  - Bug Report: Documentation of significant bugs and their fixes
-  - Plan: Migration plans, roadmaps, large initiatives
-  - Task Doc: Specific task documentation
-
-- **Repository-aware extraction scripts**
-  - `get-repo-name.sh` - Get current git repository name automatically
-  - `get-doc-category.sh` - Determine destination category (reference/engineering/reports/strategy)
-  - `extract-diff-repo.sh` - Extract diff with automatic repo detection
-
+- **New document types**: Technical Guide, User Guide, Bug Report, Plan, Task Doc
+- **Repository-aware extraction scripts**: get-repo-name.sh, get-doc-category.sh, extract-diff-repo.sh
 - **Naming convention**: `${REPO}_${TYPE}_${SLUG}.md`
-  - Component Doc: `{repo}_comp_{name}.md`
-  - Changelog: `{repo}_cl_{YYYY-MM-DD}.md`
-  - ADR: `{repo}_adr_{NNN}_{slug}.md`
-  - Runbook: `{repo}_rb_{operation}.md`
-  - Guide: `{repo}_guide_{topic}.md`
-  - Technical: `{repo}_tech_{topic}.md`
-  - Bug Report: `{repo}_bug_{issue}.md`
-  - Plan: `{repo}_plan_{initiative}.md`
-  - Task Doc: `{repo}_task_{name}.md`
-
 - **Two-phase documentation workflow**
-  - Phase 1: Local development in each microservice's `docs/` folder
-  - Phase 2: Centralized merge to `docs-microservices/` after PR approval
 
 ### Changed
-- Extended frontmatter schema with new types: `guide`, `technical`, `bug`, `plan`, `task`
-- Extended layer options: `Store (Magento)`, `ERP (SAP)`, `Frontend (React)`
+- Extended frontmatter schema with new types
 - Updated analysis-patterns.md with new detection heuristics
-- Updated commit message mining with new prefixes (`migration:`, `hotfix:`)
-
-### New Folders
-- `docs/guides/` - User guides
-- `docs/technical/` - Technical documentation
-- `docs/bugs/` - Bug reports
-- `docs/plans/` - Plans and roadmaps
-- `docs/tasks/` - Task documentation
 
 ---
 

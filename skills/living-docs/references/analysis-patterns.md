@@ -42,6 +42,125 @@ These patterns are **stack-agnostic** — they work for backend services, fronte
 
 ---
 
+## Change Categories
+
+When analyzing a commit range, classify every changed file into one of these categories for detailed guidance on indicators and doc impact:
+
+### 1. Endpoints (`endpoints`)
+Files that define or modify HTTP routes, REST endpoints, GraphQL resolvers, or WebSocket handlers.
+
+**Indicators**:
+- Files in `routes/`, `controllers/`, `handlers/`
+- Decorators: `@Get`, `@Post`, `@Controller`, `@Resolver`
+- Express/Fastify route definitions: `app.get()`, `router.post()`
+- Changes to request/response DTOs
+
+**Doc impact**: Update the API/Endpoints section of the service doc. If endpoint behavior changes, check if any flow docs reference this endpoint.
+
+### 2. Business Logic (`business-logic`)
+Files that contain core domain logic, data transformations, validation rules, or orchestration.
+
+**Indicators**:
+- Files in `services/`, `domain/`, `use-cases/`, `core/`
+- Changes to data mapping or transformation functions
+- Changes to validation logic
+- New business rules or conditions
+
+**Doc impact**: Update the Modules section. If the logic affects a cross-service flow, flag the relevant flow doc.
+
+### 3. Configuration (`config`)
+Changes to environment variables, feature flags, configuration files.
+
+**Indicators**:
+- `.env`, `.env.example`, `config/` files
+- Kubernetes manifests, Helm values
+- Docker compose changes
+- Feature flag additions/modifications
+
+**Doc impact**: Update the Configuration section. New env vars are especially critical — missing docs here blocks onboarding.
+
+### 4. Dependencies (`dependencies`)
+Changes to package dependencies.
+
+**Indicators**:
+- `package.json`, `package-lock.json`, `yarn.lock`
+- Dockerfile base image changes
+- New library imports in code
+
+**Doc impact**: Usually minor. Only update docs if a new dependency introduces a significant new capability or pattern (e.g., adding a new ORM, a new queue library).
+
+### 5. Infrastructure (`infrastructure`)
+Changes to deployment, CI/CD, monitoring, or infrastructure-as-code.
+
+**Indicators**:
+- `Dockerfile`, `docker-compose.yml`
+- `.github/workflows/`, `Jenkinsfile`
+- Kubernetes manifests, Terraform, Pulumi
+- Monitoring/alerting configuration
+- Tilt, Skaffold configuration
+
+**Doc impact**: Update the Infrastructure section. Significant changes (new deployment model, new monitoring) may warrant an ADR.
+
+### 6. Data Models (`data-models`)
+Changes to database schemas, DTOs, interfaces, or type definitions that represent the service's domain.
+
+**Indicators**:
+- Migration files
+- Files in `models/`, `entities/`, `schemas/`, `dtos/`
+- Interface/type changes in TypeScript
+- Prisma schema, TypeORM entities
+
+**Doc impact**: Update the Data Models section. Schema changes often affect flows — check for cross-service impact.
+
+### 7. Error Handling (`error-handling`)
+Changes to how errors are caught, retried, reported, or propagated.
+
+**Indicators**:
+- Try/catch blocks, error middleware
+- Retry logic, circuit breakers
+- Dead letter queue configurations
+- Alert/notification integrations
+
+**Doc impact**: Update the Error Handling section. Changes to retry behavior are especially important for flow docs.
+
+### 8. Tests (`tests`)
+Test files and test infrastructure.
+
+**Indicators**:
+- Files in `test/`, `__tests__/`, `*.spec.ts`, `*.test.ts`
+- Test fixtures, mocks, factories
+
+**Doc impact**: Usually none for the main docs. Tests can serve as additional documentation source — if a test clearly documents an edge case, consider adding it to Known Issues.
+
+### 9. Queue / Event Changes (`queues`)
+Changes to message producers, consumers, or event definitions.
+
+**Indicators**:
+- Queue consumer/producer definitions
+- Event types/schemas
+- Pub/Sub topic configuration
+- Bull/BullMQ job definitions
+
+**Doc impact**: Update Queue Consumers/Producers sections. Always check flow docs — queue changes almost always affect cross-service flows.
+
+### 10. Other (`other`)
+Documentation, README, comments, formatting, refactors with no behavioral change.
+
+**Doc impact**: Usually none. Refactors may simplify the code reference paths in existing docs.
+
+### Priority Matrix
+
+When generating a doc update, prioritize changes in this order:
+
+| Priority | Category | Reason |
+|----------|----------|--------|
+| Critical | endpoints, queues | Directly affects service contracts and cross-service flows |
+| High | business-logic, data-models, error-handling | Affects behavior that users and other services depend on |
+| Medium | config, infrastructure | Important for ops and onboarding |
+| Low | dependencies, tests, other | Rarely affects docs |
+
+---
+
 ## Key Distinctions
 
 ### Business Logic vs Structural Changes
@@ -176,6 +295,17 @@ Extract intent from commit messages when the diff is ambiguous:
 | `migration:` | Plan + ADR |
 | `hotfix:` | Bug Report + Changelog (Critical Fix) |
 
+### Commit Message Interpretation Heuristics
+
+When commit messages are unclear, use these heuristics:
+
+- `fix:` → Something was broken. Check if the fix changes documented behavior.
+- `feat:` → New capability. Almost always needs doc update.
+- `refactor:` → Internal change. Check if public API changed.
+- `chore:` → Maintenance. Usually no doc impact.
+- `breaking:` or `BREAKING CHANGE` → Always needs doc update + flow check.
+- No convention → Read the diff. Don't trust the message alone.
+
 ## Scope Determination
 
 When analyzing a diff, determine documentation scope:
@@ -263,3 +393,16 @@ Signals (any of):
 | Infrastructure | Runbook | Technical Guide |
 | Documentation update | User Guide | - |
 | Small task | Task Doc | - |
+
+---
+
+## Red Flags
+
+Things that should always trigger a warning in generated docs:
+
+1. **New env var without documentation**: Found in code but not in `.env.example`
+2. **Endpoint change without test change**: Possible undocumented behavior change
+3. **Queue schema change**: Almost certainly affects other services
+4. **Removal of error handling**: Potential regression
+5. **Hard-coded values**: URLs, credentials, magic numbers
+6. **Direct database queries**: Bypassing the ORM/service layer
