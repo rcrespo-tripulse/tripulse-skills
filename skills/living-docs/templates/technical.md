@@ -56,6 +56,11 @@ commit_range: abc..def
 <!-- Optional. Include for shared helper modules that influence outcomes. -->
 <!-- Reuse structure from templates/section-helpers-utilities.md -->
 
+## Risks & Inconsistencies
+
+<!-- Optional. Include when code analysis reveals possible bugs/issues/inconsistencies. -->
+<!-- Reuse structure from templates/section-risk-observations.md -->
+
 ## Usage Examples
 
 ### Example 1: [Use Case]

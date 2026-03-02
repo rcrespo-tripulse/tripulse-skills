@@ -364,6 +364,7 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
    - Set `status` honestly: `active`, `debt`, `zombie`, or `gap`
    - Populate `aliases` with English keywords + Spanish equivalents
    - **Omit template sections that don't apply**
+   - When analysis detects issues/bugs/inconsistencies, include the optional `Risks & Inconsistencies` section using `templates/section-risk-observations.md`
 
 7. **Generate docs**: Write docs to the folder structure. For incremental updates, use the merge strategy:
 
@@ -379,14 +380,17 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
 
    Minimum depth requirements for generated docs (`document [service]`):
    - Include low-level sections when evidence exists: `Helpers & Utilities`, `Schemas & Interfaces`, `Business Rules`.
+   - Include `Risks & Inconsistencies` when evidence shows a possible bug, mismatch, fragile assumption, unclear behavior, or security/operational risk.
    - Document helpers with: purpose, inputs/outputs, side effects, call sites.
    - Document schemas/interfaces with: fields, constraints, optional/required semantics, compatibility notes.
    - Document business rules with: trigger conditions, decision branches, validation rules, failure behavior.
+   - Document each risk with: severity, finding, code evidence, impact, recommended action, and owner (if known).
 
    Mini templates:
    - `templates/section-business-rules.md`
    - `templates/section-helpers-utilities.md`
-   Use both templates when generating low-level sections for component/technical docs.
+   - `templates/section-risk-observations.md`
+   Use these templates when generating low-level sections for component/technical docs.
 
    Visual + code evidence requirements:
    - Include at least one Mermaid diagram per component doc when there are 3+ meaningful steps (flowchart or sequence).
@@ -401,6 +405,7 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
    - [ ] Snippets are real excerpts and linked to file references
    - [ ] All frontmatter required fields are populated
    - [ ] File paths referenced in "Key Files" actually exist
+   - [ ] Detected risks/inconsistencies are documented with severity + evidence, or explicitly marked as not reproducible
    - [ ] No stale content from previous docs remains
    - [ ] No duplicate docs (check existing files before creating new ones)
 
@@ -429,6 +434,7 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
 **Rules**:
 - NEVER invent interfaces, configuration parameters, or behaviors not found in current code
 - If something is unclear, document it as "⚠️ Unclear: [what you found] — needs human verification"
+- If risk severity is `high` or `critical`, also create/update a bug report in `docs/bugs/{repo}_bug_{slug}.md` and cross-link it from the parent doc
 - Every claim must be grounded in current code analysis
 - Never create docs outside a git repo or in the workspace root
 - **Recent Changes section is NOT generated here** - use `document-branch` for change tracking
@@ -458,6 +464,7 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
 3. **Classify changes**: Run `detect-changes.sh` and apply classification from `references/analysis-patterns.md`, then map results into the same technology-agnostic capability model used by CMD 1.
 
 4. **Generate docs**: Reuse CMD 1 steps 5-9 with one addition: include a "Recent Changes" section sourced from the branch diff/commits.
+   - If the diff reveals potential regressions/inconsistencies, add `Risks & Inconsistencies` entries with severity/evidence and cross-link bug reports for high/critical items.
 
 5. **Check for flow impact** (critical step):
    If docs-microservices exists, read frontmatter of all docs in `strategy/data-flows/`. If any flow lists this service in its `services:` array, flag it:
@@ -687,6 +694,7 @@ Default N = 20 unless user specifies otherwise.
 - **Trace to code**: Every claim references a file, commit, or config.
 - **Tables over prose**: For endpoints, env vars, dependencies — always tables.
 - **Document depth**: Capture not only interfaces but also helpers, contracts, and business rules when they influence behavior.
+- **Risk visibility**: When code analysis finds possible bugs/issues/inconsistencies, record them in `Risks & Inconsistencies` with severity + evidence; escalate high/critical findings to a bug report doc.
 - **Be honest**: If current state or diff reveals tech debt, set `status: debt`. Living docs tell the truth.
 - **Aliases matter**: Include concept name, Spanish translation, common abbreviations.
 - **Omit empty sections**: Don't include template sections that have no content for this component.
@@ -793,4 +801,5 @@ l0m1n2o chore: add passport-google-oauth20 dependency
 - `references/ci-integration.md` — GitHub Actions workflow examples
 - `templates/section-business-rules.md` — Reusable section template for business rule documentation
 - `templates/section-helpers-utilities.md` — Reusable section template for helper/utility documentation
+- `templates/section-risk-observations.md` — Reusable section template for documenting issues, bugs, and inconsistencies
 - `templates/` — All document templates

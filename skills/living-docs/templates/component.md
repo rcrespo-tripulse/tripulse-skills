@@ -80,6 +80,11 @@ commit_range: abc..def
 <!-- Optional. Include when helpers/utilities materially affect behavior. -->
 <!-- Reuse structure from templates/section-helpers-utilities.md -->
 
+## Risks & Inconsistencies
+
+<!-- Optional. Include when code analysis reveals possible bugs/issues/inconsistencies. -->
+<!-- Reuse structure from templates/section-risk-observations.md -->
+
 ## Recent Changes
 
 [Auto-generated summary of what changed in the analyzed commits]

@@ -48,6 +48,11 @@ If something goes wrong:
 | Error rate | Grafana/Datadog | > 5% |
 | Response time | APM | > 2s p95 |
 
+## Risks & Inconsistencies
+
+<!-- Optional. Include when operational analysis reveals possible bugs/issues/inconsistencies. -->
+<!-- Reuse structure from templates/section-risk-observations.md -->
+
 ## Related
 
 - [[Service Doc]]

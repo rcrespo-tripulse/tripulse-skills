@@ -61,6 +61,11 @@ commit_range: abc..def
 | [Problem 1] | [Solution 1] |
 | [Problem 2] | [Solution 2] |
 
+## Risks & Inconsistencies
+
+<!-- Optional. Include when setup/usage analysis reveals possible bugs/issues/inconsistencies. -->
+<!-- Reuse structure from templates/section-risk-observations.md -->
+
 ## Related
 
 - [[Technical Guide]]

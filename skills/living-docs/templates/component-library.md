@@ -46,6 +46,11 @@ commit_range: abc..def
 | `src/index.ts` | Public exports (barrel file) |
 | `src/validators.ts` | Validation functions |
 
+## Risks & Inconsistencies
+
+<!-- Optional. Include when package analysis reveals possible bugs/issues/inconsistencies. -->
+<!-- Reuse structure from templates/section-risk-observations.md -->
+
 ## Recent Changes
 
 [Auto-generated summary of what changed in the analyzed commits]
