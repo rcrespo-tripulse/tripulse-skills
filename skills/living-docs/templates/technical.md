@@ -46,6 +46,16 @@ commit_range: abc..def
 
 [More implementation details]
 
+## Business Rules
+
+<!-- Optional. Include when technical behavior is driven by explicit domain rules. -->
+<!-- Reuse structure from templates/section-business-rules.md -->
+
+## Helpers & Utilities
+
+<!-- Optional. Include for shared helper modules that influence outcomes. -->
+<!-- Reuse structure from templates/section-helpers-utilities.md -->
+
 ## Usage Examples
 
 ### Example 1: [Use Case]

@@ -70,6 +70,16 @@ commit_range: abc..def
 | `src/routes/index.ts` | Route definitions |
 | `src/services/main.ts` | Core business logic |
 
+## Business Rules
+
+<!-- Optional. Include when explicit decision logic/validations exist. -->
+<!-- Reuse structure from templates/section-business-rules.md -->
+
+## Helpers & Utilities
+
+<!-- Optional. Include when helpers/utilities materially affect behavior. -->
+<!-- Reuse structure from templates/section-helpers-utilities.md -->
+
 ## Recent Changes
 
 [Auto-generated summary of what changed in the analyzed commits]
