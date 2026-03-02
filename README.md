@@ -215,6 +215,10 @@ Diferentes agentes buscan skills en diferentes rutas de proyecto. Por ejemplo:
 
 La CLI `npx skills add` almacena una **unica copia** en `.agents/skills/` (u otra ruta canonica) y crea **symlinks** en las demas rutas que necesitan otros agentes. Asi se evita duplicar archivos y se mantiene una sola fuente de verdad.
 
+En la practica, `.agent/` es un directorio que contiene **symbolic links** apuntando a los archivos reales en `.agents/`. De esta forma, Antigravity puede leer las skills desde su ruta esperada (`.agent/skills/`) sin que existan copias duplicadas — todos los agentes apuntan a la misma fuente canonica.
+
+![.agent/ contiene symbolic links a .agents/](./docs/assets/.agent-symbol-link-explain.png)
+
 `skills.sh` soporta mas de **40 agentes** de IA. Algunos de los mas relevantes:
 
 | Agente         | Flag `--agent`   | Ruta de proyecto      | Ruta global                     |
