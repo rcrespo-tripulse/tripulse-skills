@@ -34,6 +34,7 @@ Instalacion por skill especifica:
 | [`prompt-engineering-patterns`](./.agents/skills/prompt-engineering-patterns/SKILL.md) | `.agents/skills/prompt-engineering-patterns/` | Patrones avanzados de prompt engineering para produccion | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill prompt-engineering-patterns` |
 | [`sap-business-one-servicer-layer-sql`](./skills/sap-business-one-servicer-layer-sql/SKILL.md) | `skills/sap-business-one-servicer-layer-sql/` | Guia de integracion con SAP Business One Service Layer: autenticacion, OData, QueryService, batch y configuracion | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill sap-business-one-servicer-layer-sql` |
 | [`typescript-advanced-types`](./skills/typescript-advanced-types/SKILL.md) | `skills/typescript-advanced-types/` | Dominio del sistema de tipos avanzado de TypeScript: generics, tipos condicionales, mapped types, template literals y utility types | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill typescript-advanced-types` |
+| [`planning-with-files`](./skills/planning-with-files/SKILL.md) | `skills/planning-with-files/` | Planificacion estilo Manus con archivos persistentes (`task_plan.md`, `findings.md`, `progress.md`) para tareas complejas de multiples pasos; soporta recuperacion de sesion automatica | `npx skills add https://github.com/rcrespo-tripulse/tripulse-skills --skill planning-with-files` |
 
 ### living-docs en accion
 
