@@ -1,11 +1,11 @@
 ---
 name: living-docs
-description: "Generate and maintain living documentation for microservices by analyzing Git history. Trigger when users ask to document a service, update docs after changes, compare branches, generate changelogs, audit doc freshness, sync docs to central repo, migrate legacy docs, create flow docs, ADRs, or system overviews. Trigger phrases: 'document [service]', 'document-branch', 'document-commits', 'sync', 'audit', 'migrate-legacy', 'document-flow', 'create-adr', 'system-overview', 'documenta', 'qué cambió', 'actualizar docs', 'generar changelog', 'release notes', 'living docs'."
+description: "Generate and maintain living documentation for microservices by analyzing current code state and Git history when needed. Trigger when users ask to document a service, update docs after changes, compare branches, generate changelogs, audit doc freshness, sync docs to central repo, migrate legacy docs, create flow docs, ADRs, or system overviews. Trigger phrases: 'document [service]', 'document-branch', 'document-commits', 'sync', 'audit', 'migrate-legacy', 'document-flow', 'create-adr', 'system-overview', 'documenta', 'qué cambió', 'actualizar docs', 'generar changelog', 'release notes', 'living docs'."
 ---
 
 # Living Docs
 
-Generate documentation driven by actual code changes. Every document traces to specific commits and files. When code changes, docs change.
+Generate documentation driven by current code reality and verified changes. Every document traces to specific files and, when relevant, commits.
 
 ## Philosophy
 
@@ -18,15 +18,26 @@ Documentation must be:
 
 **Language policy**: Generate all documentation in English. Include Spanish translations in the `aliases` frontmatter field.
 
+## Technology-Agnostic Principle
+
+The skill must infer architecture from evidence, not from framework assumptions.
+
+- Prefer capability discovery (`http`, `queue`, `event`, `cron`, `rpc`, `storage`) over framework labels
+- Use framework/tooling hints only as secondary evidence, never as a hard dependency
+- Normalize findings into a shared capability model before generating docs
+- Apply confidence scoring and mark uncertainty when evidence is weak
+- Keep command behavior stable across mixed or uncommon stacks
+
 ---
 
 ## Commands
 
 | Command | Description | Scope |
 |---------|-------------|-------|
-| `document [service]` | Full MS documentation (from scratch or incremental) | Per-service |
+| `document [service]` | Full MS documentation (state-driven, current codebase) | Per-service |
 | `document-branch` | Document current branch changes vs base branch | Per-service |
 | `document-commits [N]` | Document last N commits | Per-service |
+| `cmd-list` | Show available living-docs commands and when to use each one | Meta |
 | `sync` | Sync per-MS docs to docs-microservices (CTO structure) | Central |
 | `migrate-legacy` | Detect and migrate pre-existing docs to standard format | Per-service |
 | `audit` | Freshness audit of all per-MS docs | All services |
@@ -38,16 +49,18 @@ Documentation must be:
 
 ## Activation Signals
 
-Use this skill when the user intent matches documentation-from-code-changes or any command above.
+Use this skill when the user intent matches documentation-from-current-code-state, documentation-from-code-changes, or any command above.
 
 High-confidence trigger phrases (English/Spanish):
 - "document this feature", "document X functionality", "document current branch"
 - "document the diff", "what changed", "generate release notes", "generate changelog"
+- "living-docs:cmd-list", "cmd-list", "show commands", "listar comandos"
 - "update docs for react/integrator/magento", "document all microservices"
 - "documenta esta funcionalidad", "documenta la branch actual", "analiza el diff y genera documentacion"
 - "sync docs", "audit docs", "migrate legacy", "document flow", "create adr"
 
 Intent-to-scope defaults:
+- "living-docs:cmd-list" / "cmd-list" / "show commands" → run `bash <skill-path>/scripts/list-commands.sh`
 - "document this feature/funcionalidad" → `document-branch` (current branch vs default branch)
 - "document current branch/branch actual" → `document-branch`
 - "release notes/changelog" → `document-commits 20` (default 20 unless user specifies)
@@ -55,7 +68,7 @@ Intent-to-scope defaults:
 - "sync/sincronizar" → `sync`
 - "audit/revisar docs" → `audit`
 
-Do not trigger this skill for generic writing requests not tied to git changes.
+Do not trigger this skill for generic writing requests not tied to code analysis or git changes. `document [service]` is state-driven and does not require git history.
 
 ---
 
@@ -232,9 +245,10 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
 
 ## Command Instructions
 
-### CMD 1: `document [service]`
+### CMD 1: `document [service]` (State-Scan Mode)
 
 **Trigger**: User asks to document a microservice, or wants to regenerate docs.
+**Philosophy**: This command documents the **current state** of the codebase, not the commit history. Git is used only for optional metadata, not as the primary analysis source.
 
 **Steps**:
 
@@ -242,43 +256,91 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
    ```bash
    REPO_NAME=$(bash <skill-path>/scripts/get-repo-name.sh <repo-path>)
    ```
-   If no existing docs → full generation. If docs exist → incremental update.
+   If no existing docs → full generation. If docs exist → incremental state comparison.
 
-2. **Determine the range**:
-   - If existing doc has `last_documented_sha` in frontmatter → analyze from that SHA to HEAD
-   - If no existing docs → analyze full branch or last 50 commits
+2. **State Scan (Primary Analysis, Technology-Agnostic)**:
+   Instead of git diffs, analyze the codebase at HEAD using capability discovery and evidence scoring.
+
+   Build a language-agnostic inventory:
    ```bash
-   # For incremental: read last_documented_sha from existing docs
-   LAST_SHA=$(grep -m1 'last_documented_sha:' "<repo-path>/docs/components/${REPO}_comp_overview.md" | sed 's/.*: *"\?\([^"]*\)"\?/\1/' | tr -d ' ')
+   # Source tree candidate roots (do not assume a framework)
+   find <repo-path> -maxdepth 3 -type d \( -name src -o -name app -o -name internal -o -name api -o -name services -o -name handlers -o -name routes \)
+
+   # Project manifests (detect ecosystem, not framework)
+   ls <repo-path>/{package.json,requirements.txt,pyproject.toml,go.mod,pom.xml,build.gradle,Cargo.toml,composer.json,Gemfile} 2>/dev/null
    ```
 
-3. **Extract diff data**:
+   Discover integration surfaces by semantic signals (no framework branching):
    ```bash
-   bash <skill-path>/scripts/extract-diff-repo.sh <repo-path> --branch <target>
-   # or for incremental:
-   bash <skill-path>/scripts/extract-diff.sh <repo-path> --branch <base>
+   # HTTP/API candidates: method + path-like signal in same file
+   grep -RniE "(get|post|put|patch|delete|request|route|endpoint|handler|controller)" <repo-path> --include="*.{js,jsx,ts,tsx,py,go,java,kt,rb,php,rs,cs}" | head -200
+   grep -RniE "(/[a-zA-Z0-9_./:-]+|\{[a-zA-Z_][a-zA-Z0-9_]*\}|:[a-zA-Z_][a-zA-Z0-9_]*)" <repo-path> --include="*.{js,jsx,ts,tsx,py,go,java,kt,rb,php,rs,cs}" | head -200
+
+   # Async/event surfaces
+   grep -RniE "(queue|topic|publish|subscribe|consumer|producer|listener|webhook|event|kafka|rabbit|sqs|pubsub|nats)" <repo-path> --include="*.{js,jsx,ts,tsx,py,go,java,kt,rb,php,rs,cs}" | head -200
+
+   # Scheduled/background work
+   grep -RniE "(cron|schedule|scheduler|timer|job|worker|celery|bull|agenda)" <repo-path> --include="*.{js,jsx,ts,tsx,py,go,java,kt,rb,php,rs,cs}" | head -120
+
+   # Config and runtime parameters
+   grep -RniE "(env|config|settings|secret|token|key|url|timeout|retry)" <repo-path> --include="*.{js,jsx,ts,tsx,py,go,java,kt,rb,php,rs,cs,yml,yaml,json,toml,ini,env}" | head -200
    ```
 
-4. **Detect and classify changes**:
+   Normalize findings into a capability model:
+   - `kind`: `http` | `queue` | `event` | `cron` | `rpc` | `storage`
+   - `operation`: verb/action (e.g., `GET`, `consume`, `publish`, `run`)
+   - `path_or_topic`: route, queue/topic, job identifier, or API contract id
+   - `handler_symbol`: function/class/module entry point if available
+   - `source_file`: file path + line reference
+   - `confidence`: `high` | `medium` | `low`
+   - `evidence`: matched tokens/patterns used to infer behavior
+
+   Apply confidence scoring before asserting facts:
+   - `+3` explicit external interface signal (route/topic/job id)
+   - `+2` executable handler symbol resolved in code
+   - `+1` corroborated by tests/config/wiring
+   - Score `>=6` = high, `4-5` = medium, `<4` = low
+
+   Focus on: entry points, external interfaces, internal modules, config, schemas/contracts, and runtime wiring.
+
+3. **Optional Git Metadata** (not required for generation):
    ```bash
-   bash <skill-path>/scripts/detect-changes.sh --repo <repo-path> --from <SHA> --to HEAD
+   # Only for frontmatter tracking - not for analysis
+   CURRENT_SHA=$(git -C <repo-path> rev-parse HEAD)
+   LAST_UPDATED=$(date +%Y-%m-%d)
    ```
-   Read `references/analysis-patterns.md` for the full classification guide. Map each significant change to doc types:
+   - Read `last_verified_sha` from existing docs (if any) to detect if state changed
+   - Do NOT use commit range to determine what to document
 
-   | Change Type | Impact | Doc Types |
-   |-------------|--------|-----------|
-   | New component / module | High | Component Doc (new) |
-   | Public API change | High | Component Doc + Changelog |
-   | Business logic change | High | Component Doc + Changelog |
-   | Schema / data model change | High | ADR + Component Doc |
-   | Major dependency added | Medium-High | ADR + Component Doc |
-   | Infrastructure change | Medium | Runbook |
-   | Internal refactor | Low | Changelog (Internal) or skip |
+4. **Compare vs Existing Docs** (Incremental Mode):
+   If docs exist, compare current state against documented state:
+   - List current capabilities (`http`, `queue`, `cron`, `event`, etc.) → check if documented
+   - List current handlers/modules → check if documented
+   - List current helpers/utilities (`*helper*`, `*util*`, shared functions) → check if documented
+   - List current schemas/interfaces/contracts/types → check if documented
+   - List explicit business rules/validations/branching logic → check if documented
+   - List current config/runtime parameters → check if documented
+   - Flag anything in docs that no longer exists in code (stale)
 
-5. **Select and fill templates**: Read templates from `templates/` directory. See `references/frontmatter-schema.md` for frontmatter rules.
+5. **Classify State Elements**:
+   | Capability / Element | Doc Type |
+   |----------------------|----------|
+   | External interface (HTTP/RPC/GraphQL) | Component Doc |
+   | Async interface (queue/topic/event/webhook) | Component Doc |
+   | Internal module/service boundary | Component Doc |
+   | Helper/utility function with business impact | Technical Doc or Component subsection |
+   | Schema/interface/type/DTO/contract | Component Doc (Contract section) |
+   | Business rule (pricing, eligibility, state transitions, validations) | Component Doc (Business Rules section) |
+   | Config/runtime parameters | Technical Doc |
+   | Data schema/contract | Component Doc (+ ADR if architectural impact) |
+   | New major dependency/integration | Guide or Technical Doc |
+   | Existing capability changed | Update matching doc |
+
+6. **Select and fill templates**: Read templates from `templates/` directory. See `references/frontmatter-schema.md` for frontmatter rules.
 
    Frontmatter rules:
-   - ALWAYS include required fields: `aliases`, `type`, `layer`, `status`, `owner`, `tech_stack`, `last_updated`, `source_branch`, `commit_range`
+   - Include required fields: `aliases`, `type`, `layer`, `status`, `owner`, `tech_stack`, `last_updated`
+   - Use `last_verified_sha` (optional, from git) instead of `source_branch` and `commit_range`
    - Include `audience` tag per CTO's distribution model
    - Use `[[wiki-links]]` for owner, tech_stack, and cross-references
    - Set `last_updated` to today's date
@@ -286,48 +348,69 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
    - Populate `aliases` with English keywords + Spanish equivalents
    - **Omit template sections that don't apply**
 
-6. **Generate docs**: Write docs to the folder structure. For incremental updates, use the merge strategy:
+7. **Generate docs**: Write docs to the folder structure. For incremental updates, use the merge strategy:
 
    | Section | Strategy |
    |---------|----------|
-   | Frontmatter | **Merge**: Update `last_updated`, `commit_range`, `status`. Preserve `owner`, `aliases` (append new ones) |
-   | What It Does | **Replace only if** the component's purpose fundamentally changed |
-   | API Surface | **Merge**: Add new entries, update changed, mark removed as deprecated |
-   | Dependencies | **Replace** with current state |
-   | Configuration | **Merge**: Add new env vars, update changed |
-   | Key Files | **Replace** with current state |
-   | Recent Changes | **Append** new changes at top, keep last 5-10 entries |
+   | Frontmatter | **Merge**: Update `last_updated`, `last_verified_sha`, `status`. Preserve `owner`, `aliases` (append new ones) |
+   | What It Does | **Replace** with current description from code analysis |
+   | API/Interface Surface | **Replace** with current capability map (scan from code) |
+   | Dependencies | **Replace** with current dependency manifests |
+   | Configuration | **Replace** with current runtime parameters (scan from code) |
+   | Key Files | **Replace** with current file structure |
+   | Recent Changes | **Omit** - this belongs to `document-branch` |
 
-7. **Verify output**: Before presenting to the user:
-   - [ ] Every endpoint/export mentioned in docs exists in the diff or codebase
+   Minimum depth requirements for generated docs (`document [service]`):
+   - Include low-level sections when evidence exists: `Helpers & Utilities`, `Schemas & Interfaces`, `Business Rules`.
+   - Document helpers with: purpose, inputs/outputs, side effects, call sites.
+   - Document schemas/interfaces with: fields, constraints, optional/required semantics, compatibility notes.
+   - Document business rules with: trigger conditions, decision branches, validation rules, failure behavior.
+
+   Visual + code evidence requirements:
+   - Include at least one Mermaid diagram per component doc when there are 3+ meaningful steps (flowchart or sequence).
+   - Include at least one code snippet per major section (`API/Interface`, `Business Rules`, `Helpers`) when available.
+   - Snippets must be short (10-40 lines), copied from real code, and include file references.
+   - Never fabricate snippets; if code cannot be safely excerpted, provide precise file:line references instead.
+
+8. **Verify output**: Before presenting to the user:
+   - [ ] Every interface/capability mentioned in docs has code evidence in the current codebase
+   - [ ] Helper functions, schemas/interfaces, and business rules are documented when present
+   - [ ] Mermaid diagram(s) included where flow complexity >= 3 steps
+   - [ ] Snippets are real excerpts and linked to file references
    - [ ] All frontmatter required fields are populated
    - [ ] File paths referenced in "Key Files" actually exist
-   - [ ] Breaking changes flagged in Changelog match actual contract changes
+   - [ ] No stale content from previous docs remains
    - [ ] No duplicate docs (check existing files before creating new ones)
 
-8. **Update index.md**: Regenerate `docs/index.md` with links to all docs.
+9. **Update index.md**: Regenerate `docs/index.md` with links to all docs.
 
-9. **Present summary**:
-   ```
-   ## Documentation Generated
+10. **Present summary**:
+    ```
+    ## Documentation Generated
 
-   | File | Type | Reason |
-   |------|------|--------|
-   | docs/components/react_comp_auth.md | Component Doc | New endpoints in routes/users.ts |
-   | docs/changelogs/react_cl_2026-03-01.md | Changelog | 12 commits with 3 features, 2 fixes |
+    | File | Type | Scope |
+    |------|------|-------|
+    | docs/components/react_comp_auth.md | Component Doc | Current state - 5 endpoints |
+    | docs/technical/react_tech_config.md | Technical Doc | Current state - 12 env vars |
 
-   ### Key Changes Documented
-   - [bullets]
+    ### State Captured
+    - Services: auth, users, payments
+    - Endpoints: 15 total
+    - Dependencies: 23 packages
 
-   ### Skipped (Low Impact)
-   - [what and why]
-   ```
+    ### Incremental Changes
+    - Added: 2 new endpoints (POST /auth/refresh, GET /users/profile)
+    - Updated: 3 env vars (OAUTH_CALLBACK_URL, etc.)
+    - Removed: 1 deprecated endpoint (GET /auth/logout)
+    ```
 
 **Rules**:
-- NEVER invent endpoints, environment variables, or behaviors not found in code
+- NEVER invent interfaces, configuration parameters, or behaviors not found in current code
 - If something is unclear, document it as "⚠️ Unclear: [what you found] — needs human verification"
-- Every claim must be grounded in code or commits
+- Every claim must be grounded in current code analysis
 - Never create docs outside a git repo or in the workspace root
+- **Recent Changes section is NOT generated here** - use `document-branch` for change tracking
+- If confidence is medium/low, include explicit evidence and mark uncertainty
 
 ---
 
@@ -350,9 +433,9 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
    bash <skill-path>/scripts/extract-diff.sh <repo-path> --branch $BASE
    ```
 
-3. **Classify changes**: Run `detect-changes.sh` and apply classification from `references/analysis-patterns.md`.
+3. **Classify changes**: Run `detect-changes.sh` and apply classification from `references/analysis-patterns.md`, then map results into the same technology-agnostic capability model used by CMD 1.
 
-4. **Generate docs**: Same as CMD 1 steps 5-8.
+4. **Generate docs**: Reuse CMD 1 steps 5-9 with one addition: include a "Recent Changes" section sourced from the branch diff/commits.
 
 5. **Check for flow impact** (critical step):
    If docs-microservices exists, read frontmatter of all docs in `strategy/data-flows/`. If any flow lists this service in its `services:` array, flag it:
@@ -372,7 +455,7 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
 
 **Trigger**: User wants to document the last N commits, or says "release notes", "changelog".
 
-**Steps**: Same as CMD 2, but use `--commits N` instead of `--branch`:
+**Steps**: Same as CMD 2 (including capability-model mapping), but use `--commits N` instead of `--branch`:
 ```bash
 bash <skill-path>/scripts/extract-diff.sh <repo-path> --commits <N>
 ```
@@ -556,9 +639,9 @@ Default N = 20 unless user specifies otherwise.
 2. **Read existing per-MS docs** from each service repo (`{service}/docs/`).
 
 3. **If no per-MS docs exist** for a service, do a lightweight scan:
-   - Read `package.json` for name/description/deps
-   - Read main entry point for route definitions
-   - Read Docker/K8s config for infrastructure context
+   - Read any project manifest found (npm/pip/go/maven/gradle/cargo/composer/ruby)
+   - Read service entry points and interface wiring files
+   - Read Docker/K8s/runtime config for infrastructure context
 
 4. **Generate** using `templates/system-overview.md`:
    - Service inventory (name, purpose, tech stack, integrations)
@@ -581,7 +664,8 @@ Default N = 20 unless user specifies otherwise.
 - **No fluff**: Every sentence carries information. Cut filler.
 - **Trace to code**: Every claim references a file, commit, or config.
 - **Tables over prose**: For endpoints, env vars, dependencies — always tables.
-- **Be honest**: If the diff reveals tech debt, set `status: debt`. Living docs tell the truth.
+- **Document depth**: Capture not only interfaces but also helpers, contracts, and business rules when they influence behavior.
+- **Be honest**: If current state or diff reveals tech debt, set `status: debt`. Living docs tell the truth.
 - **Aliases matter**: Include concept name, Spanish translation, common abbreviations.
 - **Omit empty sections**: Don't include template sections that have no content for this component.
 
@@ -596,9 +680,10 @@ Default N = 20 unless user specifies otherwise.
 1. **All docs use frontmatter** (see `references/frontmatter-schema.md`)
 2. **Status values**: `active` | `debt` | `zombie` | `gap` (per-MS docs). `draft` | `verified` | `needs-review` | `stale` (for doc lifecycle).
 3. **Language**: Generate docs in English. Include Spanish translations in `aliases` field.
-4. **Mermaid diagrams**: Required for any flow with 3+ steps or any architecture with 3+ components.
-5. **Code references**: Use format `service-name/path/to/file.ts:functionName` or `service-name/path/to/file.ts:L42`.
-6. **Audience tag**: Always include `audience` field per CTO's distribution model.
+4. **Mermaid diagrams**: Required for any flow with 3+ steps or any architecture with 3+ components. For `document [service]`, include at least one Mermaid diagram per major component doc when flow/logic complexity meets this threshold.
+5. **Code references**: Use format `service-name/path/to/file.ext:functionName` or `service-name/path/to/file.ext:L42`.
+6. **Code snippets**: Include fenced snippets for key interfaces/rules/helpers (10-40 lines each), grounded in real code and accompanied by file references.
+7. **Audience tag**: Always include `audience` field per CTO's distribution model.
 
 ### Per-Microservice Execution Rules (mandatory)
 
@@ -674,6 +759,7 @@ l0m1n2o chore: add passport-google-oauth20 dependency
 
 - `scripts/extract-diff.sh` — Extract structured diff data (file stats, commit log, full diff)
 - `scripts/extract-diff-repo.sh` — Extract diff with automatic repository name detection
+- `scripts/list-commands.sh` — Show all `living-docs:<command>` prompts with when-to-use guidance
 - `scripts/get-repo-name.sh` — Get the current git repository name
 - `scripts/detect-changes.sh` — Categorize changes by type with priority levels
 - `scripts/check-freshness.sh` — Compare doc timestamps vs last code change
