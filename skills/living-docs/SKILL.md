@@ -45,6 +45,23 @@ The skill must infer architecture from evidence, not from framework assumptions.
 | `create-adr` | Create Architecture Decision Record | Central |
 | `system-overview` | Generate/update system-level overview | Central |
 
+### Prompt Invocation (explicit)
+
+Users can invoke commands with the `living-docs:<command>` format.
+
+- `living-docs:cmd-list`
+- `living-docs:document [service]`
+- `living-docs:document-branch`
+- `living-docs:document-commits [N]`
+- `living-docs:sync`
+- `living-docs:migrate-legacy`
+- `living-docs:audit`
+- `living-docs:document-flow [name]`
+- `living-docs:create-adr`
+- `living-docs:system-overview`
+
+If the user uses this explicit format, route directly to the matching command workflow without extra intent interpretation.
+
 ---
 
 ## Activation Signals
@@ -365,6 +382,11 @@ If scope, branch, or repository is ambiguous, ask a focused question before gene
    - Document helpers with: purpose, inputs/outputs, side effects, call sites.
    - Document schemas/interfaces with: fields, constraints, optional/required semantics, compatibility notes.
    - Document business rules with: trigger conditions, decision branches, validation rules, failure behavior.
+
+   Mini templates:
+   - `templates/section-business-rules.md`
+   - `templates/section-helpers-utilities.md`
+   Use both templates when generating low-level sections for component/technical docs.
 
    Visual + code evidence requirements:
    - Include at least one Mermaid diagram per component doc when there are 3+ meaningful steps (flowchart or sequence).
@@ -769,4 +791,6 @@ l0m1n2o chore: add passport-google-oauth20 dependency
 - `references/frontmatter-schema.md` — Frontmatter schema and validation rules
 - `references/central-mapping.md` — Mapping from per-MS paths to docs-microservices paths
 - `references/ci-integration.md` — GitHub Actions workflow examples
+- `templates/section-business-rules.md` — Reusable section template for business rule documentation
+- `templates/section-helpers-utilities.md` — Reusable section template for helper/utility documentation
 - `templates/` — All document templates
